@@ -1,0 +1,36 @@
+[build-system]
+requires = ["setuptools>=42", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.poetry]
+name = "UnlimitedGPT"
+version = "0.0.5"
+description = "An unofficial Python wrapper for OpenAI's ChatGPT API"
+authors = ["Sxvxge <sxvxge69@gmail.com>"]
+license = "GPL-3.0 license"
+readme = "README.md"
+homepage = "https://github.com/Sxvxgee/UnlimitedGPT"
+repository = "https://github.com/Sxvxgee/UnlimitedGPT"
+documentation = "https://github.com/Sxvxgee/UnlimitedGPT/blob/main/README.md"
+keywords = ["OpenAI", "ChatGPT", "wrapper"]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+    "Intended Audience :: Developers",
+    "Natural Language :: English",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Topic :: Internet",
+    "Topic :: Software Development :: Libraries",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Utilities",
+    "Typing :: Typed",
+]
+packages = [
+    { include = "UnlimitedGPT" }
+]
+
+[tool.poetry.dependencies]
+python = ">=3.8.0"
