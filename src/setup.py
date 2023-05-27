@@ -1,17 +1,12 @@
-from setuptools import setup
+from setuptools import setup, find_packages
 
 requirements = []
-with open('requirements.txt') as f:
+with open('/home/sxvxge/Desktop/My Files/Code Projects/Github/UnlimitedGPT/requirements.txt') as f:
     requirements = f.read().splitlines()
 
 readme = ''
-with open('README.md') as f:
+with open('/home/sxvxge/Desktop/My Files/Code Projects/Github/UnlimitedGPT/README.md') as f:
     readme = f.read()
-
-packages = [
-    'src/UnlimitedGPT',
-    'src/UnlimitedGPT/internal/',
-]
 
 setup(
     name='UnlimitedGPT',
@@ -21,8 +16,9 @@ setup(
         'Documentation': 'https://github.com/Sxvxgee/UnlimitedGPT/blob/main/README.md',
         'Issue tracker': 'https://github.com/Sxvxgee/UnlimitedGPT/issues',
     },
-    version="0.0.5",
-    packages=packages,
+    version="0.0.7",
+    packages=['UnlimitedGPT', 'UnlimitedGPT/internal'],
+    py_modules=['UnlimitedGPT'],
     license='GPL-3.0 license',
     description='An unofficial Python wrapper for OpenAI\'s ChatGPT API',
     long_description=readme,
