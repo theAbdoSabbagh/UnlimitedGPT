@@ -21,7 +21,7 @@ An unofficial Python wrapper for OpenAI's ChatGPT API
 ### Installation
 
 ```bash
-pip install -U pyChatGPT
+pip install -U UnlimitedGPT
 ```
 
 ### Usage
@@ -76,7 +76,7 @@ It is normal for the seession to be crashed when installing dependencies. Just i
 ```python
 # install dependencies
 !apt install chromium-browser xvfb
-!pip install -U selenium_profiles pyChatGPT
+!pip install -U selenium_profiles UnlimitedGPT
 
 # install chromedriver
 from selenium_profiles.utils.installer import install_chromedriver
@@ -85,7 +85,7 @@ install_chromedriver()
 
 ```python
 # start your script as normal
-!python3 -m pyChatGPT
+!python3 -m UnlimitedGPT
 ```
 
 ## Insipration
