@@ -3,13 +3,12 @@ from setuptools import setup, find_packages
 
 base_path = os.path.abspath(os.path.dirname(__file__))
 
-
 requirements = []
-with open(os.path.join(base_path, 'requirements.txt')) as f:
+with open(os.path.join(os.path.dirname(base_path), 'requirements.txt')) as f:
     requirements = f.read().splitlines()
 
 readme = ''
-with open(os.path.join(base_path, 'README.md')) as f:
+with open(os.path.join(os.path.dirname(base_path), 'README.md')) as f:
     readme = f.read()
 
 setup(
