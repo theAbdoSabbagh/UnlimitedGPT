@@ -1,3 +1,8 @@
+# Custom
+main.py
+updatePackage.py
+pypi-package
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
