@@ -1,11 +1,15 @@
+import os
 from setuptools import setup, find_packages
 
+base_path = os.path.abspath(os.path.dirname(__file__))
+
+
 requirements = []
-with open('/home/sxvxge/Desktop/My Files/Code Projects/Github/UnlimitedGPT/requirements.txt') as f:
+with open(os.path.join(base_path, 'requirements.txt')) as f:
     requirements = f.read().splitlines()
 
 readme = ''
-with open('/home/sxvxge/Desktop/My Files/Code Projects/Github/UnlimitedGPT/README.md') as f:
+with open(os.path.join(base_path, 'README.md')) as f:
     readme = f.read()
 
 setup(
@@ -16,7 +20,7 @@ setup(
         'Documentation': 'https://github.com/Sxvxgee/UnlimitedGPT/blob/main/README.md',
         'Issue tracker': 'https://github.com/Sxvxgee/UnlimitedGPT/issues',
     },
-    version="0.0.7",
+    version="0.0.8",
     packages=['UnlimitedGPT', 'UnlimitedGPT/internal'],
     py_modules=['UnlimitedGPT'],
     license='GPL-3.0 license',
