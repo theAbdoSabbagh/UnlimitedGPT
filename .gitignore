@@ -2,6 +2,7 @@
 main.py
 updatePackage.py
 pypi-package
+__pyproject.toml
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
