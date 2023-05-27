@@ -103,3 +103,7 @@ This project is not affiliated with OpenAI in any way. Use at your own risk. I a
 ## License
 
 This project is licensed under the GPLv3 License - see the [LICENSE](LICENSE) file for details.
+
+## Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=Sxvxgee/UnlimitedGPT&type=Date)](https://star-history.com/#Sxvxgee/UnlimitedGPT&Date)
