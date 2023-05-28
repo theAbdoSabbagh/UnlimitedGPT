@@ -1,5 +1,5 @@
 import re
-from typing import Optional
+from typing import Optional, Literal
 from time import sleep, time
 from threading import Thread
 from platform import system
@@ -14,11 +14,12 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.common.exceptions import TimeoutException, NoSuchElementException
 from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.common.action_chains import ActionChains
 from undetected_chromedriver import ChromeOptions
 
 from .internal.driver import ChatGPTDriver
 from .internal.chatgpt_data import ChatGPTVariables as CGPTV
-from .internal.objects import ChatGPTResponse
+from .internal.objects import ChatGPTResponse, User, SessionData
 
 class ChatGPT:
     """
@@ -33,6 +34,8 @@ class ChatGPT:
         verbose (bool, optional): Whether to enable verbose logging. Defaults to False.
         headless (bool, optional): Whether to run the browser in headless mode. Defaults to False.
         chrome_args (list, optional): Additional arguments for the Chrome browser. Defaults to [].
+        input_mode(list, options): The input mode. Defaults to 'INSTANT'.
+        input_delay(int, options): The input delay. Defaults to 0.2.
     
     Raises:
     ----------
@@ -49,6 +52,8 @@ class ChatGPT:
         verbose: bool = False,
         headless: bool = False,
         chrome_args: list = [],
+        input_mode: Literal['INSTANT', 'SLOW'] = 'INSTANT',
+        input_delay: int = 0.2,
     ) -> None:
         self._session_token = session_token
         self._conversation_id = conversation_id
@@ -57,6 +62,8 @@ class ChatGPT:
         self._headless = headless
         self._chrome_args = chrome_args
         self._clicked_buttons = False
+        self._input_mode = input_mode
+        self._input_delay = input_delay
         self._init_logger(verbose)
 
         if not self._session_token:
@@ -80,6 +87,16 @@ class ChatGPT:
         if hasattr(self, 'display'):
             self.logger.debug('Closing display...')
             self.display.stop()
+
+    def get_out_of_menu(self) -> None:
+        """
+        Get out of any menu present.
+        """
+        for i in range(5):
+            # First escape click is to remove the options menu
+            # Second escape click is to get out of the settings menu
+            # The rest are just to be safe
+            self.driver.find_element(By.TAG_NAME, 'body').send_keys(Keys.ESCAPE)
 
     def _init_logger(self, verbose: bool) -> None:
         """
@@ -208,6 +225,14 @@ class ChatGPT:
             self.logger.debug('Dismissing alert...')
             self.driver.execute_script('arguments[0].remove()', alerts[0])
 
+        if not self._clicked_buttons:
+            for button in CGPTV.chatgpt_info_buttons:
+                btn = WebDriverWait(self.driver, 60).until(
+                    EC.element_to_be_clickable(button)
+                )
+                btn.click()
+            self._clicked_buttons = True
+
     def _ensure_cf(self, retry: int = 3) -> None:
         """
         Ensure Cloudflare cookies are set.
@@ -274,24 +299,17 @@ class ChatGPT:
             ValueError: If the response is invalid.
             ValueError: If the response is not found.
         """
-        self.logger.debug('Ensuring Cloudflare cookies...')
-        self._ensure_cf()
-
-        self.logger.debug('Sending message...')
-        
-        if not self._clicked_buttons:
-            for button in CGPTV.chatgpt_info_buttons:
-                btn = WebDriverWait(self.driver, 60).until(
-                    EC.element_to_be_clickable(button)
-                )
-                btn.click()
-            self._clicked_buttons = True
+        self.logger.debug(f'Sending message with mode {self._input_mode}{f" with {self._input_delay} delay" if self._input_mode == "SLOW" else ""}...')
 
         textbox = WebDriverWait(self.driver, 60).until(
             EC.element_to_be_clickable(CGPTV.chatgpt_textbox)
         )
-        # textbox.send_keys(message)
-        self.driver.execute_script("arguments[0].value = arguments[1];", textbox, message)
+        if self._input_mode == 'INSTANT':
+            self.driver.execute_script("arguments[0].value = arguments[1];", textbox, message)
+        else:
+            for char in message:
+                textbox.send_keys(char)
+                sleep(self._input_delay)
 
         textbox.send_keys(Keys.ENTER)
 
@@ -349,3 +367,162 @@ class ChatGPT:
         except NoSuchElementException:
             self.logger.debug('New chat button not found')
             self.driver.save_screenshot('reset_conversation_failed.png')
+
+    def clear_conversations(self) -> None:
+        """
+        Clears all conversations.
+        """
+        self.logger.debug('Clearing all conversations...')
+        try:
+            menu_button = self.driver.find_element(*CGPTV.chatgpt_menu_button)
+            menu_button.click()
+            clear_conversations = self.driver.find_element(*CGPTV.chatgpt_menu_clear_conversations)
+            clear_conversations.click()
+            clear_conversations.click() # Confirm button is the same path
+        except NoSuchElementException:
+            self.logger.debug('Could not find menu buttons')
+            self.driver.save_screenshot('clear_conversations_failed.png')
+
+    def switch_theme(self, theme: Literal['LIGHT', 'DARK', 'OPPOSITE', 'SYSTEM']) -> None:
+        """
+        Switch the theme.
+
+        Args:
+        ----------
+            theme (Literal['LIGHT', 'DARK', 'OPPOSITE']): The theme to switch to.
+
+        Notes:
+        ----------
+            - `LIGHT`: Light theme.
+            - `DARK`: Dark theme.
+            - `OPPOSITE`: Switch to the opposite theme.
+            - `SYSTEM`: Switch to the system theme.
+        """
+        self.logger.debug(f'Switching theme to {theme}...')
+        try:
+            menu_button_clicked = self.driver.safe_click(CGPTV.chatgpt_menu_button)
+            if not menu_button_clicked:
+                self.logger.debug('Could not click menu button')
+                return self.get_out_of_menu()
+
+            self.logger.debug('Clicked menu button')
+            
+            settings_button_clicked = self.driver.safe_click(CGPTV.chatgpt_menu_settings_button)
+            if not settings_button_clicked:
+                self.logger.debug('Could not click settings button')
+                return self.get_out_of_menu()
+
+            self.logger.debug('Clicked settings button')
+            
+            current_theme_value = self.driver.find_element(*CGPTV.chatgpt_outer_html).get_attribute('class')
+            current_theme = 'LIGHT' if 'light' in current_theme_value else 'DARK'
+            if theme == current_theme:
+                self.logger.debug('Theme is already set to the desired theme')
+                return self.get_out_of_menu()
+
+            select_element = self.driver.find_element(By.CSS_SELECTOR, 'select.rounded')
+            ActionChains(self.driver).move_to_element(select_element).click().perform()
+
+            if theme == 'OPPOSITE':
+                if current_theme == 'SYSTEM':
+                    self.logger.debug('Theme cannot be set to opposite of system theme')
+                    return self.get_out_of_menu()
+                    
+                opposite_theme = 'dark' if current_theme == 'LIGHT' else 'light'
+                option = self.driver.find_element(By.CSS_SELECTOR, f'select.rounded option[value={opposite_theme}]')
+                option.click()
+                self.logger.debug(f'Selected opposite theme of {current_theme}')
+            else:
+                option = self.driver.find_element(By.CSS_SELECTOR, f'select.rounded option[value={theme.lower()}]')
+                option.click()
+                self.logger.debug(f'Selected theme {theme}')
+            
+            self.get_out_of_menu()
+        except NoSuchElementException:
+            self.logger.debug('Could not find theme buttons')
+            self.driver.save_screenshot('theme_switch_failed.png')
+
+    def switch_account(self, session_token: str):
+        """
+        Switch the account.
+
+        Args:
+        ----------
+            session_token (str): The session token for authentication.
+
+        Raises:
+        ----------
+            ValueError: If the session token is not provided.
+            ValueError: If the response is invalid.
+        """
+        self.logger.debug('Switching account...')
+        self.driver.execute_cdp_cmd(
+            'Network.setCookie',
+            {
+                'domain': 'chat.openai.com',
+                'path': '/',
+                'name': '__Secure-next-auth.session-token',
+                'value': session_token,
+                'httpOnly': True,
+                'secure': True,
+            },
+        )
+
+        self.logger.debug('Validating authorization...')
+        self.driver.get('https://chat.openai.com/api/auth/session')
+        response = self.driver.page_source
+        if response[0] != '{':
+            response = self.driver.find_element(By.TAG_NAME, 'pre').text
+        response = loads(response)
+        if (not response) or (
+            'error' in response and response['error'] == 'RefreshAccessTokenError'
+        ):
+            raise ValueError('Invalid session token')
+        self.logger.debug('Authorization is valid')
+
+        self.logger.debug('Opening chat page...')
+        self.driver.get(f'{CGPTV.chatgpt_chat_url}/{self._conversation_id}')
+        self._check_blocking_elements()
+    
+    def get_session_data(self) -> SessionData:
+        """
+        Get the session data.
+
+        Returns:
+        ----------
+            SessionData: The ChatGPT session data.
+        """
+        self.logger.debug('Getting account data...')
+        self.driver.get('https://chat.openai.com/api/auth/session')
+        response = self.driver.page_source
+        if response[0] != '{':
+            response = self.driver.find_element(By.TAG_NAME, 'pre').text
+        response = loads(response)
+        session_data = SessionData(
+            User(**response['user']),
+            response["expires"],
+            response["accessToken"],
+            response["authProvider"]
+        )
+        return session_data
+
+    def logout(self) -> None:
+        """
+        Logs out of the current account signed into https://chat.openai.com
+        """
+        self.logger.debug('Logging out...')
+        self.driver.execute_cdp_cmd(
+            'Network.deleteCookies',
+            {
+                'name': '__Secure-next-auth.session-token',
+                'url': 'https://chat.openai.com',
+            },
+        )
+        self.driver.get('https://chat.openai.com/api/auth/session')
+        response = self.driver.page_source
+        if response[0] != '{':
+            response = self.driver.find_element(By.TAG_NAME, 'pre').text
+        response = loads(response)
+        if response == {}:
+            self.logger.debug('Logout successful')
+            return
