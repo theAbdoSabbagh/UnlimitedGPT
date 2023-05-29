@@ -63,5 +63,9 @@ class ChatGPTVariables:
         By.XPATH,
         "/html/body/div[5]/div/div/div/div[2]/div/div[2]/div/div[1]/div/select"
     )
+    chatgpt_regenerate_response_button = (
+        By.XPATH,
+        "/html/body/div[1]/div[2]/div[2]/div/main/div[3]/form/div/div[1]/div/button"
+    )
 
     chatgpt_chat_url = 'https://chat.openai.com/chat'
