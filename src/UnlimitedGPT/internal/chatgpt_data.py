@@ -67,5 +67,9 @@ class ChatGPTVariables:
         By.XPATH,
         "/html/body/div[1]/div[2]/div[2]/div/main/div[3]/form/div/div[1]/div/button"
     )
+    chatgpt_theme_select = (
+        By.CSS_SELECTOR,
+        'select.rounded'
+    )
 
     chatgpt_chat_url = 'https://chat.openai.com/chat'
