@@ -35,11 +35,10 @@ class ChatGPT:
         verbose (bool, optional): Whether to enable verbose logging. Defaults to False.
         headless (bool, optional): Whether to run the browser in headless mode. Defaults to False.
         chrome_args (list, optional): Additional arguments for the Chrome browser. Defaults to [].
-        input_mode(list, options): The input mode. Defaults to 'INSTANT'.
-        input_delay(float, options): The input delay. Defaults to 0.2.
     
     Raises:
     ----------
+        InvalidConversationID: If the conversation ID is invalid.
         ValueError: If the session token is not provided.
         ValueError: If the proxy is invalid.
     """
@@ -53,8 +52,6 @@ class ChatGPT:
         verbose: bool = False,
         headless: bool = False,
         chrome_args: list = [],
-        input_mode: Literal['INSTANT', 'SLOW'] = 'INSTANT',
-        input_delay: float = 0.2,
     ) -> None:
         self._session_token = session_token
         self._conversation_id = conversation_id
@@ -63,8 +60,6 @@ class ChatGPT:
         self._headless = headless
         self._chrome_args = chrome_args
         self._clicked_buttons = False
-        self._input_mode = input_mode
-        self._input_delay = input_delay
         self._init_logger(verbose)
 
         if not self._session_token:
@@ -280,7 +275,13 @@ class ChatGPT:
         self.driver.close()
         self.driver.switch_to.window(original_window)
 
-    def send_message(self, message: str, timeout: int = 240) -> ChatGPTResponse:
+    def send_message(
+        self,
+        message: str,
+        timeout: int = 240,
+        input_mode: Literal['INSTANT', 'SLOW'] = "INSANT",
+        input_delay: float = 0.1,
+    ) -> ChatGPTResponse:
         """
         Send a message to ChatGPT.
 
@@ -288,6 +289,8 @@ class ChatGPT:
         ----------
             message (str): Message to send.
             timeout (int, optional): Timeout in seconds. Defaults to 240.
+            input_mode(list, optional): The input mode. Defaults to 'INSTANT'.
+            input_delay(float, optional): The input delay. Defaults to 0.1.
 
         Returns:
         ----------
@@ -299,12 +302,12 @@ class ChatGPT:
             ValueError: If the response is invalid.
             ValueError: If the response is not found.
         """
-        self.logger.debug(f'Sending message with mode {self._input_mode}{f" with {self._input_delay} delay" if self._input_mode == "SLOW" else ""}...')
+        self.logger.debug(f'Sending message with mode {input_mode}{f" with {input_delay} delay" if input_mode == "SLOW" else ""}...')
 
         textbox = WebDriverWait(self.driver, 60).until(
             EC.element_to_be_clickable(CGPTV.chatgpt_textbox)
         )
-        if self._input_mode == 'INSTANT':
+        if input_mode == 'INSTANT':
             self.driver.execute_script("arguments[0].value = arguments[1];", textbox, message)
         else:
             for char in message:
@@ -315,9 +318,12 @@ class ChatGPT:
                         EC.element_to_be_clickable(CGPTV.chatgpt_textbox)
                     )
                     textbox.send_keys(char)
-                sleep(self._input_delay)
 
-        textbox.send_keys(Keys.ENTER)
+        while True:
+            value = self.driver.execute_script("return arguments[0].value;", textbox)
+            if len(value.strip().replace('\n', '').replace(' ', '').replace('\r', '')) == 0:
+                break
+            textbox.send_keys(Keys.ENTER)
 
         self.logger.debug('Waiting for completion...')
         WebDriverWait(self.driver, timeout).until_not(
@@ -342,21 +348,8 @@ class ChatGPT:
         content = markdownify(response.get_attribute('innerHTML')).replace(
             'Copy code`', '`'
         )
-        
-        pattern = re.compile(
-            r'[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}'
-        )
-        matches = pattern.search(self.driver.current_url)
-        if not matches:
-            self.reset_conversation()
-            self.driver.safe_click(CGPTV.chatgpt_chats_list_first_node, 60)
-            sleep(0.5)
-            matches = pattern.search(self.driver.current_url)
-        try:
-            conversation_id = matches.group() # type: ignore
-        except:
-            conversation_id = None
-        return ChatGPTResponse(content, conversation_id)
+
+        return ChatGPTResponse(content, self._conversation_id)
 
     def reset_conversation(self) -> None:
         """
@@ -433,7 +426,7 @@ class ChatGPT:
                 self.logger.debug('Theme is already set to the desired theme')
                 return self._get_out_of_menu()
 
-            select_element = self.driver.find_element(CGPTV.chatgpt_theme_select)
+            select_element = self.driver.find_element(*CGPTV.chatgpt_theme_select)
             ActionChains(self.driver).move_to_element(select_element).perform()
             select_clicked = self.driver.safe_click(CGPTV.chatgpt_theme_select, 60)
             if not select_clicked:
@@ -514,6 +507,10 @@ class ChatGPT:
             SessionData: The ChatGPT session data.
         """
         self.logger.debug('Getting account data...')
+        original_window = self.driver.current_window_handle
+        self.logger.debug('Opening new tab...')
+        self.driver.execute_script("window.open();")
+        self.driver.switch_to.window(self.driver.window_handles[-1])
         self.driver.get('https://chat.openai.com/api/auth/session')
         response = self.driver.page_source
         if response[0] != '{':
@@ -525,6 +522,9 @@ class ChatGPT:
             response["accessToken"],
             response["authProvider"]
         )
+        self.logger.debug('Closing tab...')
+        self.driver.close()
+        self.driver.switch_to.window(original_window)
         return session_data
 
     def logout(self) -> None:
@@ -576,7 +576,7 @@ class ChatGPT:
 
             # Click "Data controls" button
             data_controls_button_clicked = self.driver.safe_click(
-                CGPTV.chatgpt_menu_data_controls_button, 60
+                CGPTV.chatgpt_data_controls_button, 60
             )
             if not data_controls_button_clicked:
                 self.logger.debug('Could not click data controls button')
@@ -649,21 +649,5 @@ class ChatGPT:
             'Copy code`', '`'
         )
         
-        pattern = re.compile(
-            r'[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}'
-        )
-        matches = pattern.search(self.driver.current_url)
-        if not matches:
-            self.reset_conversation()
-            list_first_node_clicked = self.driver.safe_click(CGPTV.chatgpt_chats_list_first_node, 60)
-            if not list_first_node_clicked:
-                self.logger.debug('Could not click chats list first node')
-                raise TimeoutException('Could not click chats list first node')
-            sleep(0.5)
-            matches = pattern.search(self.driver.current_url)
-        try:
-            conversation_id = matches.group() # type: ignore
-        except:
-            conversation_id = None
         self.logger.debug('Regenerated response')
-        return ChatGPTResponse(content, conversation_id)
+        return ChatGPTResponse(content, self._conversation_id)
