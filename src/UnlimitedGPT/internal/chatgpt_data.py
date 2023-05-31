@@ -11,7 +11,7 @@ class ChatGPTVariables:
     )
     chatgpt_textbox = (
         By.XPATH,
-        '/html/body/div[1]/div[2]/div[2]/div/main/div[3]/form/div/div[2]/textarea'
+        '/html/body/div[1]/div[2]/div[2]/div/main/div[3]/form/div/div/textarea'
     )
     chatgpt_info_buttons = [
         (By.XPATH, '/html/body/div[3]/div/div/div/div[2]/div/div[2]/button'),
@@ -52,16 +52,16 @@ class ChatGPTVariables:
         "/html/body/div[1]/div[2]/div[1]/div/div/div/nav/div[3]/div/button"
     )
     chatgpt_menu_clear_conversations = (
-        By.XPATH,
-        "/html/body/div[1]/div[2]/div[1]/div/div/div/nav/div[3]/div/div/nav/a[2]"
+        # By.XPATH,
+        # "/html/body/div[1]/div[2]/div[1]/div/div/div/nav/div[3]/div/div/nav/a[2]"
+        By.LINK_TEXT,
+        'Clear conversations'
     ) # Confirm button is the same path
     chatgpt_menu_settings_button = (
-        By.XPATH,
-        "/html/body/div[1]/div[2]/div[1]/div/div/div/nav/div[3]/div/div/nav/a[3]"
-    )
-    chatgpt_theme_selector = (
-        By.XPATH,
-        "/html/body/div[5]/div/div/div/div[2]/div/div[2]/div/div[1]/div/select"
+        # By.XPATH,
+        # "/html/body/div[1]/div[2]/div[1]/div/div/div/nav/div[3]/div/div/nav/a[3]"
+        By.LINK_TEXT,
+        'Settings'
     )
     chatgpt_regenerate_response_button = (
         By.XPATH,
@@ -71,5 +71,9 @@ class ChatGPTVariables:
         By.CSS_SELECTOR,
         'select.rounded'
     )
+    chatgpt_data_controls_button = (
+        By.CSS_SELECTOR,
+        'button[data-state="inactive"][id^="radix-"][id$="-trigger-DataControls"]'
+    )
 
-    chatgpt_chat_url = 'https://chat.openai.com/chat'
+    chatgpt_chat_url = 'https://chat.openai.com/'
