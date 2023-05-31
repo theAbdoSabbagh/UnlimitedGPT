@@ -53,8 +53,6 @@ chatbot = ChatGPT(
     chrome_args=None,
     disable_moderation=False,
     verbose=False,
-    input_mode="INSTANT",
-    input_delay=0.2
 )
 ```
 
@@ -69,10 +67,6 @@ chatbot = ChatGPT(
 - `verbose (bool)`: Whether to print debug messages or not. Defaults to `False`.
 - `headless (bool)`: Whether to run Chrome in headless mode or not. Defaults to `True`.
 - `chrome_args: (list)`: The Chrome arguments to use. Defaults to `[]`.
-- `input_mode (Literal['INSTANT', 'SLOW'])`: The input mode to use. Defaults to `INSTANT`.
-    - `INSTANT`: Pastes the message instantly.
-    - `SLOW`: Type one character of the message at a time.
-- `input_delay (float)`: The delay between typing each character. Defaults to `0.2`.
 
 ## Obtaining the session token
 
@@ -91,7 +85,11 @@ api = ChatGPT(...)
 ```
 ### Sending a message
 ```py
-message = api.send_message("Hey ChatGPT!")
+message = api.send_message(
+    "Hey ChatGPT!",
+    input_mode="INSANT", # Can be INSTANT or SLOW
+    input_delay=0.1 # Only used when input_mode is set to SLOW
+)
 print(message.response, message.conversation_id)
 ```
 ### Regenrating a response
