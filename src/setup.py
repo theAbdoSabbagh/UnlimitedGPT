@@ -18,6 +18,7 @@ setup(
     project_urls={
         'Documentation': 'https://github.com/Sxvxgee/UnlimitedGPT/blob/main/README.md',
         'Issue tracker': 'https://github.com/Sxvxgee/UnlimitedGPT/issues',
+        'Changelog': 'https://github.com/Sxvxgee/UnlimitedGPT/blob/main/CHANGELOG.md',
     },
     version="0.1.1",
     packages=['UnlimitedGPT', 'UnlimitedGPT/internal'],
