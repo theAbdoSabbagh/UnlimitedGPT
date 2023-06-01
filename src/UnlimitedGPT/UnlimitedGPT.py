@@ -279,7 +279,7 @@ class ChatGPT:
         self,
         message: str,
         timeout: int = 240,
-        input_mode: Literal['INSTANT', 'SLOW'] = "INSANT",
+        input_mode: Literal['INSTANT', 'SLOW'] = "INSTANT",
         input_delay: float = 0.1,
     ) -> ChatGPTResponse:
         """
