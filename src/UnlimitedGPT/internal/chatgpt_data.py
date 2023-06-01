@@ -76,4 +76,4 @@ class ChatGPTVariables:
         'button[data-state="inactive"][id^="radix-"][id$="-trigger-DataControls"]'
     )
 
-    chatgpt_chat_url = 'https://chat.openai.com/'
+    chatgpt_chat_url = 'https://chat.openai.com/chat'
