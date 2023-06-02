@@ -319,11 +319,10 @@ class ChatGPT:
                     )
                     textbox.send_keys(char)
 
-        while True:
-            value = self.driver.execute_script("return arguments[0].value;", textbox)
-            if len(value.strip().replace('\n', '').replace(' ', '').replace('\r', '')) == 0:
-                break
-            textbox.send_keys(Keys.ENTER)
+        textbox.send_keys('a')
+        textbox.send_keys(Keys.BACKSPACE)
+        
+        textbox.send_keys(Keys.ENTER)
 
         self.logger.debug('Waiting for completion...')
         WebDriverWait(self.driver, timeout).until_not(
