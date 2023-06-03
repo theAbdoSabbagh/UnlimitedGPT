@@ -101,6 +101,10 @@ print(message.response, message.conversation_id)
 ```py
 api.reset_conversation()
 ```
+### Switching to a new conversation
+```py
+api.switch_conversation("NEW_CONVERSATION_ID") # Make sure it's valid or InvalidConversationID exception will be raised
+```
 ### Clearing all conversations
 ```py
 api.clear_conversations()
@@ -131,11 +135,8 @@ api.switch_account("some-other-token")
 - Why use this project instead of OpenAI's official API?
     - This project is open-source, and you can use it for free. OpenAI's official API is closed-source, and you have to pay to use it. In addition, this project has more features than OpenAI's official API.
 
-- When is proper documentation coming?
-    - Documentation of every function, class and object will be coming very soon. For now, all information of current exisiting functions can be found [here](#methods).
-
 - What can I do with this project?
-    - You can use this project to create your own chatbot, or to automate your conversations on https://chat.openai.com/chat.
+    - You can use this project to create your own chatbot, or to automate your conversations on https://chat.openai.com/chat. The possibilities are endless.
 
 - How do I suggest a feature?
     - You can suggest a feature by creating an issue [here](https://github.com/Sxvxgee/UnlimitedGPT/issues). Please make sure that the feature you are suggesting is not already implemented.
@@ -155,5 +156,5 @@ api.switch_account("some-other-token")
 - Is this project safe to use?
     - Yes, this project is safe to use. However, if you are using this project to automate your conversations on https://chat.openai.com/chat, you might get banned. So, use this project at your own risk, as it is against the OpenAI's TOS.
 
-## Closing Notes
+## Closing Thoughts
 This project is solely maintained by me, and I maintain this project and its dependencies in my free time. If you like this project, please consider starring it on GitHub.
