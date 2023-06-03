@@ -2,7 +2,7 @@
 main.py
 updatePackage.py
 tests
-auto_test
+auto_test.py
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
