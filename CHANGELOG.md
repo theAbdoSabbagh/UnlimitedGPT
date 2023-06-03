@@ -1,6 +1,21 @@
 # UnlimitedGPT Changelog
 All notable changes to this project will be documented in this file.
 
+## [0.1.3] 2023/06/04
+- Added `preview.txt` file in the `docs` folder, which contains the text from the `preview.png` image.
+- Added more `debug` logger messages.
+- Added `switch_conversation` function to switch to a different conversation.
+- Updated `preview.png` image in the `docs` folder.
+- Removed the check for `session_token` when initializing `ChatGPT` as the parameter is required.
+- Removed `chatgpt_` prefix from all data variables (XPATHs and other selectors).
+- Modified `disable_moderation` default value to False.
+- Modified `reset_conversation` to handle the button not being clicked correctly.
+- Modified `send_message` to markdownify the content of the message differently by not adding backslashes before the asterisks or underscores, and also by removing the newlines at the end of the string.
+- Modified most of selector variable names under `chatgpt_data`.
+- Fixed `send_message` not working because of yet another website update, which changed many XPATHs including the textbox used for sending messages.
+- Fixed `reset_conversation` not working, ever, because of not using the correct URL to check.
+- Fixed `regenerate_response` outdated XPATH.
+
 ## [0.1.2.5] 2023/06/01
 - Fixed `send_message` having the default value of `input_mode` having a typo. It was "INSANT" instead of "INSTANT".
 - Fixed the driver opening up `https://chat.openai.com//` instead of `https://chat.openai.com/` resulting in the conversation ID not working.
