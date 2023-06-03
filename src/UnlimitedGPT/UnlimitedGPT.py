@@ -48,7 +48,7 @@ class ChatGPT:
         session_token: str,
         conversation_id: str = '',
         proxy: Optional[str] = None,
-        disable_moderation: bool = True,
+        disable_moderation: bool = False,
         verbose: bool = False,
         headless: bool = False,
         chrome_args: list = [],
@@ -62,8 +62,6 @@ class ChatGPT:
         self._clicked_buttons = False
         self._init_logger(verbose)
 
-        if not self._session_token:
-            raise ValueError("session_token is required")
         if self._proxy and not re.findall(
             r'(https?|socks(4|5)?):\/\/.+:\d{1,5}', self._proxy # type: ignore
         ):
@@ -177,7 +175,7 @@ class ChatGPT:
         self._ensure_cf()
 
         self.logger.debug('Opening chat page...')
-        self.driver.get(f'{CGPTV.chatgpt_chat_url}/{self._conversation_id}')
+        self.driver.get(f'{CGPTV.chat_url}/{self._conversation_id}')
         self._check_blocking_elements()
 
         self._is_active = True
@@ -209,14 +207,14 @@ class ChatGPT:
         self.logger.debug('Looking for blocking elements...')
         try:
             intro = WebDriverWait(self.driver, 5).until(
-                EC.presence_of_element_located(CGPTV.chatgpt_intro)
+                EC.presence_of_element_located(CGPTV.intro)
             )
             self.logger.debug('Dismissing intro...')
             self.driver.execute_script('arguments[0].remove()', intro)
-        except TimeoutException:
+        except TimeoutException: # type: ignore
             pass
 
-        alerts = self.driver.find_elements(*CGPTV.chatgpt_alert)
+        alerts = self.driver.find_elements(*CGPTV.alert)
         if alerts:
             if 'unable to load conversation' in alerts[0].text.lower():
                 raise InvalidConversationID(alerts[0].text)
@@ -224,8 +222,8 @@ class ChatGPT:
             self.driver.execute_script('arguments[0].remove()', alerts[0])
 
         if not self._clicked_buttons:
-            for button in CGPTV.chatgpt_info_buttons:
-                self.driver.safe_click(button, 60)
+            for button in CGPTV.info_buttons:
+                self.driver.safe_click(button, timeout = 60)
             self._clicked_buttons = True
 
     def _ensure_cf(self, retry: int = 3) -> None:
@@ -250,7 +248,7 @@ class ChatGPT:
             WebDriverWait(self.driver, 10).until_not(
                 EC.presence_of_element_located(CGPTV.cf_challenge_form)
             )
-        except TimeoutException:
+        except TimeoutException: # type: ignore
             self.logger.debug(f'Cloudflare challenge failed, retrying {retry}...')
             if retry > 0:
                 self.logger.debug('Closing tab...')
@@ -305,7 +303,7 @@ class ChatGPT:
         self.logger.debug(f'Sending message with mode {input_mode}{f" with {input_delay} delay" if input_mode == "SLOW" else ""}...')
 
         textbox = WebDriverWait(self.driver, 60).until(
-            EC.element_to_be_clickable(CGPTV.chatgpt_textbox)
+            EC.element_to_be_clickable(CGPTV.textbox)
         )
         if input_mode == 'INSTANT':
             self.driver.execute_script("arguments[0].value = arguments[1];", textbox, message)
@@ -315,7 +313,7 @@ class ChatGPT:
                     textbox.send_keys(char)
                 except StaleElementReferenceException:
                     textbox = WebDriverWait(self.driver, 60).until(
-                        EC.element_to_be_clickable(CGPTV.chatgpt_textbox)
+                        EC.element_to_be_clickable(CGPTV.textbox)
                     )
                     textbox.send_keys(char)
 
@@ -326,17 +324,17 @@ class ChatGPT:
 
         self.logger.debug('Waiting for completion...')
         WebDriverWait(self.driver, timeout).until_not(
-            EC.presence_of_element_located(CGPTV.chatgpt_streaming)
+            EC.presence_of_element_located(CGPTV.streaming)
         )
 
         self.logger.debug('Getting response...')
-        responses = self.driver.find_elements(*CGPTV.chatgpt_big_response)
+        responses = self.driver.find_elements(*CGPTV.big_response)
         if responses:
             response = responses[-1]
             if 'text-red' in response.get_attribute('class'):
                 self.logger.debug('Response is an error')
                 raise ValueError(response.text)
-        response = self.driver.find_elements(*CGPTV.chatgpt_small_response)
+        response = self.driver.find_elements(*CGPTV.small_response)
         try:
             response = response[-1]
         except IndexError:
@@ -344,9 +342,16 @@ class ChatGPT:
             self.reset_conversation()
             raise ValueError('Response not found')
 
-        content = markdownify(response.get_attribute('innerHTML')).replace(
+        content = markdownify(
+            response.get_attribute('innerHTML'),
+            escape_asterisks=False,
+            escape_underscores=False,
+
+        ).replace(
             'Copy code`', '`'
-        )
+        ).rstrip("\n")
+
+        self.logger.debug(f'Message sent')
 
         return ChatGPTResponse(content, self._conversation_id)
 
@@ -354,15 +359,15 @@ class ChatGPT:
         """
         Resets the conversation.
         """
-        if not self.driver.current_url.startswith(CGPTV.chatgpt_chat_url):
+        if not self.driver.current_url.startswith('https://chat.openai.com/'):
             return self.logger.debug('Current URL is not chat page, skipping reset')
 
         self.logger.debug('Resetting conversation...')
-        try:
-            self.driver.safe_click(CGPTV.chatgpt_new_chat, 60)
-        except NoSuchElementException:
+        clicked = self.driver.safe_click(CGPTV.new_chat, timeout = 60)
+        if not clicked:
             self.logger.debug('New chat button not found')
             return self._get_out_of_menu()
+        self.logger.debug('Conversation reset')
 
     def clear_conversations(self) -> None:
         """
@@ -370,20 +375,30 @@ class ChatGPT:
         """
         self.logger.debug('Clearing all conversations...')
         try:
-            menu_button_clicked = self.driver.safe_click(CGPTV.chatgpt_menu_button, 60)
+            menu_button_clicked = self.driver.safe_click(CGPTV.menu_button, timeout = 60)
             if not menu_button_clicked:
                 self.logger.debug('Could not click menu button')
                 return self._get_out_of_menu()
+            self.logger.debug('Clicked menu button')
             
-            clear_conversations_button_clicked = self.driver.safe_click(CGPTV.chatgpt_menu_clear_conversations, 60)
+            clear_conversations_button_clicked = self.driver.safe_click(
+                CGPTV.menu_clear_conversations, timeout = 60
+            )
             if not clear_conversations_button_clicked:
                 self.logger.debug('Could not click clear conversations button')
                 return self._get_out_of_menu()
+            self.logger.debug('Clicked clear conversations button')
             
-            confirm_clear_button_clicked = self.driver.safe_click(CGPTV.chatgpt_menu_clear_conversations, 60)
+            confirm_clear_button_clicked = self.driver.safe_click(
+                CGPTV.menu_confirm_clear_conversations, timeout = 60
+            )
             if not confirm_clear_button_clicked:
                 self.logger.debug('Could not click confirm clear conversations button')
                 return self._get_out_of_menu()
+            self.logger.debug('Clicked confirm clear conversations button')
+
+            self.logger.debug('Cleared all conversations')
+            self._get_out_of_menu()
         except NoSuchElementException:
             self.logger.debug('Could not find menu buttons')
             return self._get_out_of_menu()
@@ -405,32 +420,32 @@ class ChatGPT:
         """
         self.logger.debug(f'Switching theme to {theme}...')
         try:
-            menu_button_clicked = self.driver.safe_click(CGPTV.chatgpt_menu_button)
+            menu_button_clicked = self.driver.safe_click(CGPTV.menu_button)
             if not menu_button_clicked:
                 self.logger.debug('Could not click menu button')
                 return self._get_out_of_menu()
-
             self.logger.debug('Clicked menu button')
             
-            settings_button_clicked = self.driver.safe_click(CGPTV.chatgpt_menu_settings_button)
+            settings_button_clicked = self.driver.safe_click(CGPTV.menu_settings)
             if not settings_button_clicked:
                 self.logger.debug('Could not click settings button')
                 return self._get_out_of_menu()
-
             self.logger.debug('Clicked settings button')
             
-            current_theme_value = self.driver.find_element(*CGPTV.chatgpt_outer_html).get_attribute('class')
+            current_theme_value = self.driver.find_element(*CGPTV.outer_html).get_attribute('class')
             current_theme = 'LIGHT' if 'light' in current_theme_value else 'DARK'
             if theme == current_theme:
                 self.logger.debug('Theme is already set to the desired theme')
                 return self._get_out_of_menu()
+            self.logger.debug(f'Current theme is {current_theme}')
 
-            select_element = self.driver.find_element(*CGPTV.chatgpt_theme_select)
+            select_element = self.driver.find_element(*CGPTV.theme_select)
             ActionChains(self.driver).move_to_element(select_element).perform()
-            select_clicked = self.driver.safe_click(CGPTV.chatgpt_theme_select, 60)
+            select_clicked = self.driver.safe_click(CGPTV.theme_select, timeout = 60)
             if not select_clicked:
                 self.logger.debug('Could not click theme select')
                 return self._get_out_of_menu()
+            self.logger.debug('Clicked theme select')
 
             if theme == 'OPPOSITE':
                 if current_theme == 'SYSTEM':
@@ -438,18 +453,19 @@ class ChatGPT:
                     return self._get_out_of_menu()
                     
                 opposite_theme = 'dark' if current_theme == 'LIGHT' else 'light'
-                option_clicked = self.driver.safe_click((By.CSS_SELECTOR, f'select.rounded option[value={opposite_theme}]'), 60)
+                option_clicked = self.driver.safe_click((By.CSS_SELECTOR, f'select.rounded option[value={opposite_theme}]'), timeout = 60)
                 if not option_clicked:
                     self.logger.debug('Could not click opposite theme option')
                     return self._get_out_of_menu()
                 self.logger.debug(f'Selected opposite theme of {current_theme}')
             else:
-                option_clicked = self.driver.safe_click((By.CSS_SELECTOR, f'select.rounded option[value={theme.lower()}]'), 60)
+                option_clicked = self.driver.safe_click((By.CSS_SELECTOR, f'select.rounded option[value={theme.lower()}]'), timeout = 60)
                 if not option_clicked:
                     self.logger.debug('Could not click theme option')
                     return self._get_out_of_menu()
                 self.logger.debug(f'Selected theme {theme}')
             
+            self.logger.debug('Theme switched')
             self._get_out_of_menu()
         except NoSuchElementException:
             self.logger.debug('Could not find theme buttons')
@@ -480,6 +496,7 @@ class ChatGPT:
                 'secure': True,
             },
         )
+        self.logger.debug('Executed CDP command')
 
         self.logger.debug('Validating authorization...')
         self.driver.get('https://chat.openai.com/api/auth/session')
@@ -494,7 +511,8 @@ class ChatGPT:
         self.logger.debug('Authorization is valid')
 
         self.logger.debug('Opening chat page...')
-        self.driver.get(f'{CGPTV.chatgpt_chat_url}/{self._conversation_id}')
+        self.driver.get(f'{CGPTV.chat_url}/{self._conversation_id}')
+        self.logger.debug('Opened chat page')
         self._check_blocking_elements()
     
     def get_session_data(self) -> SessionData:
@@ -538,6 +556,7 @@ class ChatGPT:
                 'url': 'https://chat.openai.com',
             },
         )
+        self.logger.debug('Executed CDP command')
         self.driver.get('https://chat.openai.com/api/auth/session')
         response = self.driver.page_source
         if response[0] != '{':
@@ -557,14 +576,14 @@ class ChatGPT:
         """
         self.logger.debug('Disabling chat history...')
         try:
-            menu_button_clicked = self.driver.safe_click(CGPTV.chatgpt_menu_button)
+            menu_button_clicked = self.driver.safe_click(CGPTV.menu_button)
             if not menu_button_clicked:
                 self.logger.debug('Could not click menu button')
                 return self._get_out_of_menu()
 
             self.logger.debug('Clicked menu button')
             
-            settings_button_clicked = self.driver.safe_click(CGPTV.chatgpt_menu_settings_button)
+            settings_button_clicked = self.driver.safe_click(CGPTV.menu_settings)
             if not settings_button_clicked:
                 self.logger.debug('Could not click settings button')
                 return self._get_out_of_menu()
@@ -574,10 +593,10 @@ class ChatGPT:
             wait = WebDriverWait(self.driver, 60)
 
             # Click "Data controls" button
-            data_controls_button_clicked = self.driver.safe_click(
-                CGPTV.chatgpt_data_controls_button, 60
+            data_controls_clicked = self.driver.safe_click(
+                CGPTV.data_controls, timeout = 60
             )
-            if not data_controls_button_clicked:
+            if not data_controls_clicked:
                 self.logger.debug('Could not click data controls button')
                 return self._get_out_of_menu()
 
@@ -616,27 +635,27 @@ class ChatGPT:
         self.logger.debug('Regenerating response...')
 
         # Click "Regenerate response" button
-        regenerate_response_button_clicked = self.driver.safe_click(
-            CGPTV.chatgpt_regenerate_response_button, click_timeout
+        regenerate_response_clicked = self.driver.safe_click(
+            CGPTV.regenerate_response, timeout = click_timeout
         )
-        if not regenerate_response_button_clicked:
+        if not regenerate_response_clicked:
             self.logger.debug('Could not click regenerate response button')
             raise TimeoutException('Could not click regenerate response button')
 
         # Get the response, same way as send_message without the part of sending the message
         self.logger.debug('Waiting for completion...')
         WebDriverWait(self.driver, message_timeout).until_not(
-            EC.presence_of_element_located(CGPTV.chatgpt_streaming)
+            EC.presence_of_element_located(CGPTV.streaming)
         )
 
         self.logger.debug('Getting response...')
-        responses = self.driver.find_elements(*CGPTV.chatgpt_big_response)
+        responses = self.driver.find_elements(*CGPTV.big_response)
         if responses:
             response = responses[-1]
             if 'text-red' in response.get_attribute('class'):
                 self.logger.debug('Response is an error')
                 raise ValueError(response.text)
-        response = self.driver.find_elements(*CGPTV.chatgpt_small_response)
+        response = self.driver.find_elements(*CGPTV.small_response)
         try:
             response = response[-1]
         except IndexError:
@@ -650,3 +669,21 @@ class ChatGPT:
         
         self.logger.debug('Regenerated response')
         return ChatGPTResponse(content, self._conversation_id)
+
+    def switch_conversation(self, conversation_id: str) -> None:
+        """
+        Switch the conversation.
+
+        Args:
+        ----------
+            conversation_id (str): The conversation ID to switch to.
+
+        Raises:
+        ----------
+            InvalidConversationID: If the conversation ID is invalid.
+        """
+        self.logger.debug('Switching conversation...')
+        self.driver.get(f'{CGPTV.chat_url}/{conversation_id}')
+        self._check_blocking_elements()
+        self._conversation_id = conversation_id
+        self.logger.debug(f'Switched conversation to {conversation_id}')
