@@ -1,0 +1,21 @@
+from UnlimitedGPT import ChatGPT
+
+api = ChatGPT(session_token)
+
+message = api.send_message("Hello ChatGPT!") # Sends a message 
+print(message.response, message.conversation_id)
+
+new_message = api.regenerate_response() # Regenerates the last message sent by ChatGPT
+print(new_message.response, new_message.conversation_id)
+
+data = api.get_session_data() # Returns the Session Data and the User Data
+print(repr(data)) # Session Data
+print(repr(data.user)) # User Data (Email, username, ID, etc)
+
+api.toggle_chat_history(False) # If set to True, it enables it
+api.switch_theme("DARK") # DARK, LIGHT, SYSTEM, OPPOSITE
+api.clear_conversations() # Clears all conversations
+api.reset_conversation() # Resets the current conversation
+api.switch_conversation("conversation-id") # Switches to a new conversation
+api.switch_account("new-session-token") # Switches to a new account
+api.logout() # Logs out of the current account
