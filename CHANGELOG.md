@@ -1,6 +1,14 @@
 # UnlimitedGPT Changelog
 All notable changes to this project will be documented in this file.
 
+## [0.1.4] 2023/06/06
+- Fixed `send_message` not working due to yet another website update, which changed the XPATH of the textbox used for sending messages.
+- Fixed `regenerate_response` not working due to yet another website update, which changed the XPATH of the button used for regenerating the response.
+- Fixed `switch_account` raising `InvalidConversationID` exception since it would use the conversation ID set in the old session, which isn't accessible in the new session.
+- Added `--disable-popup-blocking` argument to the driver to allow opening new tabs using `window.open();` JS function.
+- Modified `regenerate_response` to markdownify the content of the message differently by not adding backslashes before the asterisks or underscores, and also by removing the newlines at the end of the string.
+- Modified `switch_account` to return the new session data as a `SessionData` object.
+
 ## [0.1.3] 2023/06/04
 - Added `preview.txt` file in the `docs` folder, which contains the text from the `preview.png` image.
 - Added more `debug` logger messages.
