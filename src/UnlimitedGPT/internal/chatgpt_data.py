@@ -45,7 +45,7 @@ class ChatGPTVariables:
     )
     regenerate_response = (
         By.XPATH,
-        "/html/body/div[1]/div[2]/div[2]/div/main/div[2]/form/div/div[1]/div/button"
+        "/html/body/div[1]/div[2]/div[2]/div/main/div[3]/form/div/div[1]/div/button"
     )
     new_chat = (
         By.LINK_TEXT,
