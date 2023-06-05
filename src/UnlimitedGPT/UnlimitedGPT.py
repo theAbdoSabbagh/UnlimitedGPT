@@ -139,6 +139,7 @@ class ChatGPT:
         
         options = ChromeOptions()
         options.add_argument('--window-size=1024,768')
+        options.add_argument('--disable-popup-blocking')
         if self._proxy:
             options.add_argument(f'--proxy-server={self._proxy}')
         for arg in self._chrome_args:
@@ -355,6 +356,66 @@ class ChatGPT:
 
         return ChatGPTResponse(content, self._conversation_id)
 
+    def regenerate_response(self, message_timeout: int = 240, click_timeout: int = 20) -> ChatGPTResponse:
+        """
+        Regenerate the response.
+
+        Returns:
+        ----------
+            response (ChatGPTResponse): The newly regenerated response data.
+            message_timeout (int, optional): Time to wait for the message to regenerate before timing out. Defaults to 240.
+            click_timeout (int, optional): Time to wait for the click to succeed before timing out. Defaults to 20.
+
+        Raises:
+        ----------
+            TimeoutException: If the message fails to send.
+            TimeoutException: If the click fails to succeed.
+            ValueError: If the response is invalid.
+            ValueError: If the response is not found.
+        """
+        self.logger.debug('Regenerating response...')
+
+        # Click "Regenerate response" button
+        regenerate_response_clicked = self.driver.safe_click(
+            CGPTV.regenerate_response, timeout = click_timeout
+        )
+        if not regenerate_response_clicked:
+            self.logger.debug('Could not click regenerate response button')
+            raise TimeoutException('Could not click regenerate response button')
+
+        # Get the response, same way as send_message without the part of sending the message
+        self.logger.debug('Waiting for completion...')
+        WebDriverWait(self.driver, message_timeout).until_not(
+            EC.presence_of_element_located(CGPTV.streaming)
+        )
+
+        self.logger.debug('Getting response...')
+        responses = self.driver.find_elements(*CGPTV.big_response)
+        if responses:
+            response = responses[-1]
+            if 'text-red' in response.get_attribute('class'):
+                self.logger.debug('Response is an error')
+                raise ValueError(response.text)
+        response = self.driver.find_elements(*CGPTV.small_response)
+        try:
+            response = response[-1]
+        except IndexError:
+            self.logger.debug('Response not found, resetting conversation...')
+            self.reset_conversation()
+            raise ValueError('Response not found')
+
+        content = markdownify(
+            response.get_attribute('innerHTML'),
+            escape_asterisks=False,
+            escape_underscores=False,
+
+        ).replace(
+            'Copy code`', '`'
+        ).rstrip("\n")
+        
+        self.logger.debug('Regenerated response')
+        return ChatGPTResponse(content, self._conversation_id)
+
     def reset_conversation(self) -> None:
         """
         Resets the conversation.
@@ -471,7 +532,7 @@ class ChatGPT:
             self.logger.debug('Could not find theme buttons')
             return self._get_out_of_menu()
 
-    def switch_account(self, session_token: str):
+    def switch_account(self, session_token: str) -> SessionData:
         """
         Switch the account.
 
@@ -479,12 +540,17 @@ class ChatGPT:
         ----------
             session_token (str): The session token for authentication.
 
+        Returns:
+        ----------
+            SessionData: The new account's session data.
+
         Raises:
         ----------
             ValueError: If the session token is not provided.
             ValueError: If the response is invalid.
         """
         self.logger.debug('Switching account...')
+        self.conversation_id = '' # Old conversation ID cannot be loaded in the new account
         self.driver.execute_cdp_cmd(
             'Network.setCookie',
             {
@@ -508,12 +574,20 @@ class ChatGPT:
             'error' in response and response['error'] == 'RefreshAccessTokenError'
         ):
             raise ValueError('Invalid session token')
+        session_data = SessionData(
+            User(**response['user']),
+            response["expires"],
+            response["accessToken"],
+            response["authProvider"]
+        )
         self.logger.debug('Authorization is valid')
 
         self.logger.debug('Opening chat page...')
         self.driver.get(f'{CGPTV.chat_url}/{self._conversation_id}')
         self.logger.debug('Opened chat page')
         self._check_blocking_elements()
+        self.logger.debug('Switched account')
+        return session_data
     
     def get_session_data(self) -> SessionData:
         """
@@ -521,10 +595,9 @@ class ChatGPT:
 
         Returns:
         ----------
-            SessionData: The ChatGPT session data.
+            SessionData: The current account's session data.
         """
         self.logger.debug('Getting account data...')
-        original_window = self.driver.current_window_handle
         self.logger.debug('Opening new tab...')
         self.driver.execute_script("window.open();")
         self.driver.switch_to.window(self.driver.window_handles[-1])
@@ -541,7 +614,7 @@ class ChatGPT:
         )
         self.logger.debug('Closing tab...')
         self.driver.close()
-        self.driver.switch_to.window(original_window)
+        self.driver.switch_to.window(self.driver.window_handles[0])
         return session_data
 
     def logout(self) -> None:
@@ -615,61 +688,6 @@ class ChatGPT:
             self.logger.debug(f'Could not {"enable" if state else "disable"} chat history')
             return self._get_out_of_menu()
     
-    def regenerate_response(self, message_timeout: int = 240, click_timeout: int = 20) -> ChatGPTResponse:
-        """
-        Regenerate the response.
-
-        Returns:
-        ----------
-            response (ChatGPTResponse): The newly regenerated response data.
-            message_timeout (int, optional): Time to wait for the message to regenerate before timing out. Defaults to 240.
-            click_timeout (int, optional): Time to wait for the click to succeed before timing out. Defaults to 20.
-
-        Raises:
-        ----------
-            TimeoutException: If the message fails to send.
-            TimeoutException: If the click fails to succeed.
-            ValueError: If the response is invalid.
-            ValueError: If the response is not found.
-        """
-        self.logger.debug('Regenerating response...')
-
-        # Click "Regenerate response" button
-        regenerate_response_clicked = self.driver.safe_click(
-            CGPTV.regenerate_response, timeout = click_timeout
-        )
-        if not regenerate_response_clicked:
-            self.logger.debug('Could not click regenerate response button')
-            raise TimeoutException('Could not click regenerate response button')
-
-        # Get the response, same way as send_message without the part of sending the message
-        self.logger.debug('Waiting for completion...')
-        WebDriverWait(self.driver, message_timeout).until_not(
-            EC.presence_of_element_located(CGPTV.streaming)
-        )
-
-        self.logger.debug('Getting response...')
-        responses = self.driver.find_elements(*CGPTV.big_response)
-        if responses:
-            response = responses[-1]
-            if 'text-red' in response.get_attribute('class'):
-                self.logger.debug('Response is an error')
-                raise ValueError(response.text)
-        response = self.driver.find_elements(*CGPTV.small_response)
-        try:
-            response = response[-1]
-        except IndexError:
-            self.logger.debug('Response not found, resetting conversation...')
-            self.reset_conversation()
-            raise ValueError('Response not found')
-
-        content = markdownify(response.get_attribute('innerHTML')).replace(
-            'Copy code`', '`'
-        )
-        
-        self.logger.debug('Regenerated response')
-        return ChatGPTResponse(content, self._conversation_id)
-
     def switch_conversation(self, conversation_id: str) -> None:
         """
         Switch the conversation.
