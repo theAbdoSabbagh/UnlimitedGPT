@@ -10,10 +10,6 @@ requirements = []
 with open(os.path.join(os.path.dirname(base_path), "requirements.txt")) as f:
     requirements = f.read().splitlines()
 
-tests_requirements = []
-with open(os.path.join(os.path.dirname(base_path), "requirements_tests.txt")) as f:
-    tests_requirements = f.read().splitlines()
-
 readme = ""
 with open(os.path.join(os.path.dirname(base_path), "README.md")) as f:
     readme = f.read()
