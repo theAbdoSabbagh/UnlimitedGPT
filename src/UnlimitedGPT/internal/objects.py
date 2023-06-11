@@ -1,28 +1,28 @@
-from typing import Optional, List
 from datetime import datetime
+from typing import List, Optional
+
 
 class ChatGPTResponse:
     """
     The response object returned by ChatGPT
     """
-    def __init__(
-        self,
-        response: str,
-        conversation_id: Optional[str] = None
-    ):
+
+    def __init__(self, response: str, conversation_id: Optional[str] = None):
         self.response = response
         self.conversation_id = conversation_id
-    
+
     def __str__(self):
         return self.response
-    
+
     def __repr__(self):
         return f'<ChatGPTResponse response="{self.response}" conversation_id="{self.conversation_id}">'
+
 
 class User:
     """
     The user object returned by ChatGPT.
     """
+
     def __init__(
         self,
         id: str,
@@ -34,7 +34,7 @@ class User:
         iat: int,
         mfa: bool,
         groups: List[str],
-        intercom_hash: str
+        intercom_hash: str,
     ) -> None:
         """
         Initialize a User object.
@@ -62,22 +62,19 @@ class User:
         self.mfa = mfa
         self.groups = groups
         self.intercom_hash = intercom_hash
-    
+
     def __str__(self):
         return self.name
 
     def __repr__(self):
         return f'<User name="{self.name}" id="{self.id}" email="{self.email}" image="{self.image}" picture="{self.picture}" idp="{self.idp}" iat="{self.iat}" mfa="{self.mfa}" groups="{self.groups}" intercom_hash="{self.intercom_hash}">'
 
+
 class SessionData:
     """Class representing session data."""
 
     def __init__(
-        self,
-        user: User,
-        expires: str,
-        accessToken: str,
-        authProvider: str
+        self, user: User, expires: str, accessToken: str, authProvider: str
     ) -> None:
         """
         Initialize a SessionData object.

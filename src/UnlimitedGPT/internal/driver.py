@@ -1,12 +1,14 @@
 import undetected_chromedriver as uc
-from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.wait import WebDriverWait
+
 
 class ChatGPTDriver(uc.Chrome):
     """
     Custom selenium driver for ChatGPT.
     ##### Still in development.
     """
+
     def __init__(self, options: uc.ChromeOptions, headless: bool = False):
         super().__init__(options=options, headless=headless)
 
@@ -18,7 +20,7 @@ class ChatGPTDriver(uc.Chrome):
         ----------
             mark: (By, str): The element to click.
             timeout: (int): The amount of time to wait for the element to be clickable.
-        
+
         Returns:
         ----------
             bool: Whether or not the element was clicked.
