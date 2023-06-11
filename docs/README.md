@@ -88,13 +88,18 @@ api = ChatGPT(...)
 message = api.send_message(
     "Hey ChatGPT!",
     input_mode="INSANT", # Can be INSTANT or SLOW
-    input_delay=0.1 # Only used when input_mode is set to SLOW
+    input_delay=0.1, # Only used when input_mode is set to SLOW
+    continue_generating=True # If set to True, it will continue generating the response if the button was presented
 )
 print(message.response, message.conversation_id)
 ```
 ### Regenrating a response
 ```py
-message = api.regenerate_response() # Regenerates the last response sent by ChatGPT
+message = api.regenerate_response(
+    message_timeout: int = 240, # Time to wait for the message to regenerate before timing out.
+    click_timeout: int = 20, #  Time to wait for the button to be clicked before timing out.
+    continue_generating: bool = True # If set to True, it will continue generating the response if the button was presented
+) # Regenerates the last response sent by ChatGPT
 print(message.response, message.conversation_id)
 ```
 ### Resetting the conversation
@@ -128,7 +133,8 @@ api.logout()
 ```
 ### Switching accounts
 ```py
-api.switch_account("some-other-token")
+data = api.switch_account("some-other-token") # Returns SessionData object with some data, also User object inside of it
+print(repr(data), repr(data.user))
 ```
 
 ## Frequently Asked Questions
