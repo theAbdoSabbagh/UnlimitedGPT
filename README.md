@@ -34,6 +34,9 @@ and so much more!
 ## Documentation
 You can find the documentation [here](https://github.com/Sxvxgee/UnlimitedGPT/blob/main/docs/README.md).
 
+## Changelog
+You can find the changelog [here](https://github.com/Sxvxgee/UnlimitedGPT/blob/main/CHANGELOG.md).
+
 ## Insipration
 
 This project is inspired by
