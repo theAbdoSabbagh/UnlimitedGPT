@@ -274,12 +274,73 @@ class ChatGPT:
         self.driver.close()
         self.driver.switch_to.window(original_window)
 
+    def _continue_generating(self, timeout: int) -> str:
+        """
+        Continue generating the response.
+
+        Args:
+        ----------
+            timeout (int): Time to wait for the message to continue regenerating before timing out.
+
+        Returns:
+        ----------
+            str: The newly generated response.
+
+        Raises:
+        ----------
+            TimeoutException: If the click fails to succeed.
+            ValueError: If the response is invalid.
+            ValueError: If the response is not found.
+        """
+        self.logger.debug('Continuing generating...')
+        # Click "Continue generating" button
+        continue_response_clicked = self.driver.safe_click(
+            CGPTV.continue_regenerating, timeout = 5
+        )
+        if not continue_response_clicked:
+            self.logger.debug('Could not click continue regenerating button')
+            raise TimeoutException('Could not click continue regenerating button')
+
+        # Get the response, same way as send_message without the part of sending the message
+        self.logger.debug('Waiting for completion...')
+        WebDriverWait(self.driver, timeout).until_not(
+            EC.presence_of_element_located(CGPTV.streaming)
+        )
+
+        self.logger.debug('Getting response...')
+        responses = self.driver.find_elements(*CGPTV.big_response)
+        if responses:
+            response = responses[-1]
+            if 'text-red' in response.get_attribute('class'):
+                self.logger.debug('Response is an error')
+                raise ValueError(response.text)
+        response = self.driver.find_elements(*CGPTV.small_response)
+        try:
+            response = response[-1]
+        except IndexError:
+            self.logger.debug('Response not found, resetting conversation...')
+            self.reset_conversation()
+            raise ValueError('Response not found')
+        
+        content = markdownify(
+            response.get_attribute('innerHTML'),
+            escape_asterisks=False,
+            escape_underscores=False,
+
+        ).replace(
+            'Copy code`', '`'
+        ).rstrip("\n")
+        
+        self.logger.debug('Continued regenerating the response')
+        return content
+
     def send_message(
         self,
         message: str,
         timeout: int = 240,
         input_mode: Literal['INSTANT', 'SLOW'] = "INSTANT",
         input_delay: float = 0.1,
+        continue_generating: bool = True,
     ) -> ChatGPTResponse:
         """
         Send a message to ChatGPT.
@@ -290,6 +351,7 @@ class ChatGPT:
             timeout (int, optional): Timeout in seconds. Defaults to 240.
             input_mode(list, optional): The input mode. Defaults to 'INSTANT'.
             input_delay(float, optional): The input delay. Defaults to 0.1.
+            continue_generating(bool, optional): Whether to continue generating the response or not. Defaults to True.
 
         Returns:
         ----------
@@ -352,19 +414,32 @@ class ChatGPT:
             'Copy code`', '`'
         ).rstrip("\n")
 
+        if continue_generating:
+            continuation = self._continue_generating(timeout = timeout)
+            content = continuation
+
         self.logger.debug(f'Message sent')
 
         return ChatGPTResponse(content, self._conversation_id)
 
-    def regenerate_response(self, message_timeout: int = 240, click_timeout: int = 20) -> ChatGPTResponse:
+    def regenerate_response(
+        self,
+        message_timeout: int = 240,
+        click_timeout: int = 20,
+        continue_generating: bool = True
+    ) -> ChatGPTResponse:
         """
         Regenerate the response.
+
+        Args:
+        ----------
+            message_timeout (int, optional): Time to wait for the message to regenerate before timing out. Defaults to 240.
+            click_timeout (int, optional): Time to wait for the click to succeed before timing out. Defaults to 20.
+            continue_generating(bool, optional): Whether to continue generating the response or not. Defaults to True.
 
         Returns:
         ----------
             response (ChatGPTResponse): The newly regenerated response data.
-            message_timeout (int, optional): Time to wait for the message to regenerate before timing out. Defaults to 240.
-            click_timeout (int, optional): Time to wait for the click to succeed before timing out. Defaults to 20.
 
         Raises:
         ----------
@@ -412,6 +487,10 @@ class ChatGPT:
         ).replace(
             'Copy code`', '`'
         ).rstrip("\n")
+
+        if continue_generating:
+            continuation = self._continue_generating(timeout = message_timeout)
+            content = continuation
         
         self.logger.debug('Regenerated response')
         return ChatGPTResponse(content, self._conversation_id)
