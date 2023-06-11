@@ -96,9 +96,9 @@ print(message.response, message.conversation_id)
 ### Regenrating a response
 ```py
 message = api.regenerate_response(
-    message_timeout: int = 240, # Time to wait for the message to regenerate before timing out.
-    click_timeout: int = 20, #  Time to wait for the button to be clicked before timing out.
-    continue_generating: bool = True # If set to True, it will continue generating the response if the button was presented
+    message_timeout=240, # Time to wait for the message to regenerate before timing out.
+    click_timeout=20, #  Time to wait for the button to be clicked before timing out.
+    continue_generating=True # If set to True, it will continue generating the response if the button was presented
 ) # Regenerates the last response sent by ChatGPT
 print(message.response, message.conversation_id)
 ```
@@ -125,7 +125,7 @@ print(repr(data), repr(data.user))
 ```
 ### Toggling the chat history on/off
 ```py
-api.toggle_chat_history(state = False) # If set to True, it enables it
+api.toggle_chat_history(state=False) # If set to True, it enables it
 ```
 ### Logging out
 ```py
