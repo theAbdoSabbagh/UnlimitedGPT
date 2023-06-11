@@ -1,9 +1,6 @@
 # UnlimitedGPT Changelog
 All notable changes to this project will be documented in this file.
 
-## [0.1.5.6] 2023/06/11
-- Added `tests` folder for `pytest`.
-
 ## [0.1.5.5] 2023/06/11
 - Fixed `send_message` raising an exception when it fails to continue regenerating the response.
 - Fixed `regenerate_response` raising an exception when it fails to continue regenerating the response.
