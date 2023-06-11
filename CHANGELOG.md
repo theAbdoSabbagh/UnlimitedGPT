@@ -1,6 +1,15 @@
 # UnlimitedGPT Changelog
 All notable changes to this project will be documented in this file.
 
+## [0.1.5.5] 2023/06/11
+- Fixed `send_message` raising an exception when it fails to continue regenerating the response.
+- Fixed `regenerate_response` raising an exception when it fails to continue regenerating the response.
+
+## [0.1.5] 2023/06/11
+- Added `continue_generating` parameter to `send_message` function to allow the user to continue generating the response of ChatGPT if the button was presented.
+- Added `continue_generating` parameter to `regenerate_response` function to allow the user to continue generating the response of ChatGPT if the button was presented.
+- Fixed `regenerate_response` docstring having the `Returns` section include the `Args` text.
+
 ## [0.1.4] 2023/06/06
 - Fixed `send_message` not working due to yet another website update, which changed the XPATH of the textbox used for sending messages.
 - Fixed `regenerate_response` not working due to yet another website update, which changed the XPATH of the button used for regenerating the response.

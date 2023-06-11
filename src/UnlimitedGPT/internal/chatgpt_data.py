@@ -43,6 +43,10 @@ class ChatGPTVariables:
         By.XPATH,
         '//textarea[@id="prompt-textarea"]'
     )
+    continue_regenerating = (
+        By.XPATH,
+        "/html/body/div[1]/div[2]/div[2]/div/main/div[3]/form/div/div[1]/div/button[2]"
+    )
     regenerate_response = (
         By.XPATH,
         "/html/body/div[1]/div[2]/div[2]/div/main/div[3]/form/div/div[1]/div/button"
