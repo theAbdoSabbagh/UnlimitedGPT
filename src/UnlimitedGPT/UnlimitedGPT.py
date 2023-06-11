@@ -274,7 +274,7 @@ class ChatGPT:
         self.driver.close()
         self.driver.switch_to.window(original_window)
 
-    def _continue_generating(self, timeout: int) -> str:
+    def _continue_generating(self, timeout: int) -> Optional[str]:
         """
         Continue generating the response.
 
@@ -284,13 +284,7 @@ class ChatGPT:
 
         Returns:
         ----------
-            str: The newly generated response.
-
-        Raises:
-        ----------
-            TimeoutException: If the click fails to succeed.
-            ValueError: If the response is invalid.
-            ValueError: If the response is not found.
+            Optional[str]: The newly generated response.
         """
         self.logger.debug('Continuing generating...')
         # Click "Continue generating" button
@@ -299,13 +293,17 @@ class ChatGPT:
         )
         if not continue_response_clicked:
             self.logger.debug('Could not click continue regenerating button')
-            raise TimeoutException('Could not click continue regenerating button')
+            return None
 
         # Get the response, same way as send_message without the part of sending the message
         self.logger.debug('Waiting for completion...')
-        WebDriverWait(self.driver, timeout).until_not(
-            EC.presence_of_element_located(CGPTV.streaming)
-        )
+        try:
+            WebDriverWait(self.driver, timeout).until_not(
+                EC.presence_of_element_located(CGPTV.streaming)
+            )
+        except:
+            self.logger.debug('Could not continue generating')
+            return None
 
         self.logger.debug('Getting response...')
         responses = self.driver.find_elements(*CGPTV.big_response)
@@ -313,14 +311,14 @@ class ChatGPT:
             response = responses[-1]
             if 'text-red' in response.get_attribute('class'):
                 self.logger.debug('Response is an error')
-                raise ValueError(response.text)
+                return None
         response = self.driver.find_elements(*CGPTV.small_response)
         try:
             response = response[-1]
         except IndexError:
             self.logger.debug('Response not found, resetting conversation...')
             self.reset_conversation()
-            raise ValueError('Response not found')
+            return None
         
         content = markdownify(
             response.get_attribute('innerHTML'),
@@ -416,7 +414,8 @@ class ChatGPT:
 
         if continue_generating:
             continuation = self._continue_generating(timeout = timeout)
-            content = continuation
+            if continuation:
+                content = continuation
 
         self.logger.debug(f'Message sent')
 
@@ -490,7 +489,8 @@ class ChatGPT:
 
         if continue_generating:
             continuation = self._continue_generating(timeout = message_timeout)
-            content = continuation
+            if continuation:
+                content = continuation
         
         self.logger.debug('Regenerated response')
         return ChatGPTResponse(content, self._conversation_id)
