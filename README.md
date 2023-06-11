@@ -9,7 +9,7 @@ UnlimitedGPT is a Python library for using the ChatGPT website as an alternative
 
 UnlimitedGPT makes it easy to send messages and receive responses. UnlimitedGPT can also do a wide range of things such as getting the user data, getting the session data, clearing all conversations, resetting the current conversation, switching themes, switching accounts, and logging out from the session.
 
-![Preview](./docs/assets/preview.png)
+![Preview](https://github.com/Sxvxgee/UnlimitedGPT/blob/main/docs/assets/preview.png)
 
 ## Compatibility
 UnlimitedGPT works on Windows, Linux and macOS. It also works on Google Colab and other headless  linux servers. UnlimitedGPT requires Python 3.8 or later.
