@@ -363,6 +363,8 @@ class ChatGPT:
 
         self._conversation_id = loads(ret["body"])["items"][0]["id"]
 
+        self.logger.debug(f"Conversation id: {self._conversation_id}")
+
     def send_message(
         self,
         message: str,
@@ -455,7 +457,9 @@ class ChatGPT:
 
         self.logger.debug(f"Message sent")
 
-        self._catch_conversation_id()
+        if self._conversation_id is None:
+            self.logger.debug(f"New conversation, cathing the id.")
+            self._catch_conversation_id()
 
         return ChatGPTResponse(content, self._conversation_id)
 
