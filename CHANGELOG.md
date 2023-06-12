@@ -1,6 +1,26 @@
 # UnlimitedGPT Changelog
 All notable changes to this project will be documented in this file.
 
+## [0.1.6] 2023/06/?
+
+- Fixed `reset_conversation` not working when the chat history and training is disabled.
+- Added `_get_conversation_id` which is used in `send_message` to update the conversation ID. 
+    - Thanks to [@ezyyeah](https://github.com/ezyyeah) for their awesome contribution!
+- Added 7 new objects:
+    - `Conversation`
+    - `Conversations`
+    - `Account`
+    - `Accounts`
+    - `DefaultAccount`
+    - `Entitlement`
+    - `LastActiveSubscription`
+    - `SharedConversation`
+    - `SharedConversations`
+- Added `get_user_data` function: Gets the user data of the current session.
+- Added `get_conversations` function: Gets the conversations of the current session.
+- Added `DesiredCapabilities` to `ChatGPTDriver`. This makes getting the backend API data possible.
+- Added `get_shared_conversations` function: Gets the shared conversations of the current session.
+
 ## [0.1.5.5] 2023/06/11
 - Fixed `send_message` raising an exception when it fails to continue regenerating the response.
 - Fixed `regenerate_response` raising an exception when it fails to continue regenerating the response.
