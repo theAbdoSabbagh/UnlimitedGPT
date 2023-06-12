@@ -6,7 +6,7 @@ All notable changes to this project will be documented in this file.
 - Fixed `reset_conversation` not working when the chat history and training is disabled.
 - Added `_get_conversation_id` which is used in `send_message` to update the conversation ID. 
     - Thanks to [@ezyyeah](https://github.com/ezyyeah) for their awesome contribution!
-- Added 7 new objects:
+- Added 8 new objects:
     - `Conversation`
     - `Conversations`
     - `Account`
