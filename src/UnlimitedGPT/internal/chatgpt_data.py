@@ -42,6 +42,7 @@ class ChatGPTVariables:
         "/html/body/div[1]/div[2]/div[2]/div/main/div[3]/form/div/div[1]/div/button",
     )
     new_chat = (By.LINK_TEXT, "New chat")
+    clear_chat = (By.LINK_TEXT, "Clear chat")
 
     # Menu buttons
     menu_button = (
@@ -65,6 +66,11 @@ class ChatGPTVariables:
     data_controls = (
         By.CSS_SELECTOR,
         'button[data-state="inactive"][id^="radix-"][id$="-trigger-DataControls"]',
+    )
+    shared_links_manage = (
+        By.XPATH,
+        # "/html/body/div[5]/div/div/div/div[2]/div[1]/div[4]/div/div[2]/div/button"
+        "//button[.//div[text()='Manage']]"
     )
 
     # URLs

@@ -1,7 +1,7 @@
 import undetected_chromedriver as uc
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.wait import WebDriverWait
-
+from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 
 class ChatGPTDriver(uc.Chrome):
     """
@@ -10,7 +10,10 @@ class ChatGPTDriver(uc.Chrome):
     """
 
     def __init__(self, options: uc.ChromeOptions, headless: bool = False):
-        super().__init__(options=options, headless=headless)
+        caps = DesiredCapabilities.CHROME
+        caps['goog:loggingPrefs'] = {'performance': 'ALL'}
+        
+        super().__init__(options=options, headless=headless, desired_capabilities=caps)
 
     def safe_click(self, mark, timeout: int = 10) -> bool:
         """

@@ -1,11 +1,11 @@
 # UnlimitedGPT Documentation
 
-A Python class for interacting with ChatGPT.
+A Python library made for interacting with ChatGPT.
 
-## Getting started
+# Getting started
 Make sure you install [Chrome](https://www.google.com/chrome/) or [Chromium](https://www.chromium.org/) before using this library, as it uses `undetected_chromedriver` to bypass Cloudflare's anti-bot protection, which requires Chrome/Chromium to be installed. 
 
-## Installation
+# Installation
 
 You can install the library from [PyPi](https://pypi.org/project/UnlimitedGPT/) using the following command:
 
@@ -37,7 +37,7 @@ from selenium_profiles.utils.installer import install_chromedriver
 install_chromedriver()
 ```
 
-## Initialization
+# Initialization
 
 Create an instance of `ChatGPT`:
 ```py
@@ -56,7 +56,7 @@ chatbot = ChatGPT(
 )
 ```
 
-## Parameters
+# Parameters
 
 - `session_token (str)`: The `__Secure-next-auth.session-token` cookie from https://chat.openai.com/chat.
 - `conversation_id (Optional[int])`: The conversation ID. Defaults to `None`.
@@ -68,7 +68,7 @@ chatbot = ChatGPT(
 - `headless (bool)`: Whether to run Chrome in headless mode or not. Defaults to `True`.
 - `chrome_args: (list)`: The Chrome arguments to use. Defaults to `[]`.
 
-## Obtaining the session token
+# Obtaining the session token
 
 1. Go to https://chat.openai.com/chat and open the developer tools by `F12`.
 2. Find the `__Secure-next-auth.session-token` cookie in `Application` > `Storage` > `Cookies` > `https://chat.openai.com`.
@@ -76,7 +76,12 @@ chatbot = ChatGPT(
 
 ![image](https://user-images.githubusercontent.com/19218518/206170122-61fbe94f-4b0c-4782-a344-e26ac0d4e2a7.png)
 
-## Methods
+# Methods
+There are 2 types of methods in this library:
+1. [Methods responsible for interacting with the ChatGPT website.](#chatgpt-website-methods)
+2. [Methods responsible for interacting with the backend API.](#backend-api-methods)
+
+## ChatGPT Website Methods
 
 ### Remember to initialize the class first!
 ```py
@@ -136,6 +141,45 @@ api.logout()
 data = api.switch_account("some-other-token") # Returns SessionData object with some data, also User object inside of it
 print(repr(data), repr(data.user))
 ```
+
+## Backend API Methods
+
+### Remember to initialize the class first!
+```py
+from UnlimitedGPT import ChatGPT
+api = ChatGPT(...)
+```
+### Getting user data
+```py
+accounts = api.get_user_data()
+# There is way too many children and nested children to include
+# This function returns a Accounts objects that is rich with data
+```
+### Getting conversations
+```py
+data = api.get_conversations() # Returns Conversations object
+for conversation in data.conversations: # conversaion is of type Conversation
+    print(
+        conversation.name, # The name of the conversation
+        conversation.conversation_id, # The conversation ID
+        conversation.create_time # The time the conversation was created
+    )
+```
+### Getting shared conversations
+```py
+data = api.get_shared_conversations() # Returns Conversations object
+for conversation in data.shared_conversations: # conversaion is of type Conversation
+    print(
+        conversation.tutle, # The title of the conversation
+        conversation.id, # The shared conversation ID
+        conversation.conversation_id, # The conversation ID
+        conversation.create_time # The time the conversation was created
+        conversation.update_time # The time the conversation was updated
+        # and more!
+    )
+```
+
+
 
 ## Frequently Asked Questions
 - Why use this project instead of OpenAI's official API?
