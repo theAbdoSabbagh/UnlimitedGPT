@@ -342,6 +342,28 @@ class ChatGPT:
 
         self.logger.debug("Continued regenerating the response")
         return content
+    
+    def _catch_conversation_id(self):
+        logs_raw = self.driver.get_log("performance")
+
+        conv_response_id = next(
+            log_["params"]["requestId"]
+            for log_ in reversed([loads(lr["message"])["message"] for lr in logs_raw])
+            if
+            log_["method"] == "Network.responseReceived"
+            # and json
+            and "json" in log_["params"]["response"]["mimeType"]
+            # and status 200
+            and log_["params"]["response"]["status"] == 200
+            # and conversations
+            and "/backend-api/conversations" in log_["params"]["response"]["url"]
+        )
+
+        ret = self.driver.execute_cdp_cmd("Network.getResponseBody", {"requestId": conv_response_id})
+
+        self._conversation_id = loads(ret["body"])["items"][0]["id"]
+
+        self.logger.debug(f"Conversation id: {self._conversation_id}")
 
     def send_message(
         self,
@@ -434,6 +456,10 @@ class ChatGPT:
                 content = continuation
 
         self.logger.debug(f"Message sent")
+
+        if not self._conversation_id:
+            self.logger.debug(f"New conversation, cathing the id.")
+            self._catch_conversation_id()
 
         return ChatGPTResponse(content, self._conversation_id)
 
