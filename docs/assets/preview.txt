@@ -12,6 +12,11 @@ data = api.get_session_data() # Returns the Session Data and the User Data
 print(repr(data)) # Session Data
 print(repr(data.user)) # User Data (Email, username, ID, etc)
 
+# NEW: Supports the backend API too!
+accounts = api.get_user_data()
+conversations = api.get_conversations()
+shared_conversations = api.get_shared_conversations()
+
 api.toggle_chat_history(False) # If set to True, it enables it
 api.switch_theme("DARK") # DARK, LIGHT, SYSTEM, OPPOSITE
 api.clear_conversations() # Clears all conversations
