@@ -24,7 +24,7 @@ from undetected_chromedriver import ChromeOptions
 from .internal.chatgpt_data import ChatGPTVariables as CGPTV
 from .internal.driver import ChatGPTDriver
 from .internal.exceptions import InvalidConversationID
-from .internal.objects import ChatGPTResponse, SessionData, User
+from .internal.objects import ChatGPTResponse, Conversations, SessionData, SharedConversations, User, Accounts
 
 
 class ChatGPT:
@@ -65,6 +65,7 @@ class ChatGPT:
         self._headless = headless
         self._chrome_args = chrome_args
         self._clicked_buttons = False
+        self._history_and_training_enabled = True
         self._init_logger(verbose)
 
         if self._proxy and not re.findall(
@@ -342,8 +343,11 @@ class ChatGPT:
 
         self.logger.debug("Continued regenerating the response")
         return content
-    
-    def _catch_conversation_id(self):
+
+    def _get_conversation_id(self):
+        """
+        Gets the conversation ID.
+        """
         logs_raw = self.driver.get_log("performance")
 
         conv_response_id = next(
@@ -364,6 +368,174 @@ class ChatGPT:
         self._conversation_id = loads(ret["body"])["items"][0]["id"]
 
         self.logger.debug(f"Conversation id: {self._conversation_id}")
+
+    def _open_shared_conversations_popup(self):
+        """
+        Opens the shared conversations popup.
+        """
+        self.logger.debug("Opening shared conversations popup...")
+        try:
+            menu_button_clicked = self.driver.safe_click(CGPTV.menu_button)
+            if not menu_button_clicked:
+                self.logger.debug("Could not click menu button")
+                return self._get_out_of_menu()
+
+            self.logger.debug("Clicked menu button")
+
+            settings_button_clicked = self.driver.safe_click(CGPTV.menu_settings)
+            if not settings_button_clicked:
+                self.logger.debug("Could not click settings button")
+                return self._get_out_of_menu()
+
+            self.logger.debug("Clicked settings button")
+
+            # Click "Data controls" button
+            data_controls_clicked = self.driver.safe_click(
+                CGPTV.data_controls, timeout=60
+            )
+            if not data_controls_clicked:
+                self.logger.debug("Could not click data controls button")
+                return self._get_out_of_menu()
+            
+            self.logger.debug("Clicked data controls button")
+
+            # Click the "Manage" button for Shared Links
+            shared_links_manage_clicked = self.driver.safe_click(
+                CGPTV.shared_links_manage, timeout=60
+            )
+            if not shared_links_manage_clicked:
+                self.logger.debug("Could not click shared links manage button")
+                return self._get_out_of_menu()
+
+            self.logger.debug("Clicked shared links manage button")
+        except:
+            self.logger.debug("Could not open shared conversations popup")
+
+        return self._get_out_of_menu()
+
+    def get_user_data(self):
+        """
+        Gets the user data.
+
+        Returns
+        ---------
+            Accounts: a list of the accounts.
+        """
+        self.logger.debug("Getting user data...")
+
+        logs_raw = self.driver.get_log("performance")
+
+        data = next(
+            log_["params"]["requestId"]
+            for log_ in reversed([loads(lr["message"])["message"] for lr in logs_raw])
+            if (
+                log_["method"] == "Network.responseReceived"
+                and "json" in log_["params"]["response"]["mimeType"]
+                and log_["params"]["response"]["status"] == 200
+                and "backend-api/accounts/check/" in log_["params"]["response"]["url"]
+            )
+        )
+
+        ret = self.driver.execute_cdp_cmd("Network.getResponseBody", {"requestId": data})
+
+        response_data = loads(ret["body"])
+
+        return Accounts(response_data)
+
+    def get_conversations(self) -> Conversations:
+        """
+        Get a list of conversations.
+
+        Returns:
+        ----------
+            Conversations: A list of conversations.
+        """
+        self.logger.debug("Getting conversations...")
+        logs_raw = self.driver.get_log("performance")
+
+        data = next(
+            log_["params"]["requestId"]
+            for log_ in reversed([loads(lr["message"])["message"] for lr in logs_raw])
+            if (
+                log_["method"] == "Network.responseReceived"
+                and "json" in log_["params"]["response"]["mimeType"]
+                and log_["params"]["response"]["status"] == 200
+                and "/backend-api/conversations" in log_["params"]["response"]["url"]
+            )
+        )
+
+        self.logger.debug("Found conversations")
+
+        ret = self.driver.execute_cdp_cmd("Network.getResponseBody", {"requestId": data})
+
+        response_data = loads(ret["body"])
+
+        return Conversations(
+            response_data["items"],
+            response_data["has_missing_conversations"],
+            response_data["limit"],
+            response_data["offset"],
+            response_data["total"]
+        )
+
+    def get_shared_conversations(self, timeout: float = 5) -> SharedConversations:
+        """
+        Get a list of shared conversations.
+
+        Args:
+        ----------
+            timeout (float, optional): Time to wait for the message to continue regenerating before timing out.
+
+        Returns:
+        ----------
+            SharedConversations: A list of shared conversations, or None if unsuccessful.
+        """
+        self.logger.debug("Getting shared conversations...")
+        logs_raw = self.driver.get_log("performance")
+
+        start_time = time()
+        end_time = start_time + timeout
+        opened_popup = False
+
+        while time() < end_time:
+            try:
+                data = next(
+                    log_["params"]["requestId"]
+                    for log_ in reversed([loads(lr["message"])["message"] for lr in logs_raw])
+                    if (
+                        log_["method"] == "Network.responseReceived"
+                        and "json" in log_["params"]["response"]["mimeType"]
+                        and log_["params"]["response"]["status"] == 200
+                        and "/backend-api/shared_conversations" in log_["params"]["response"]["url"]
+                    )
+                )
+                break  # Found data, exit the loop
+            except StopIteration:
+                if not opened_popup:
+                    self.logger.debug("Could not find conversations, opening shared conversations popup...")
+                    self._open_shared_conversations_popup()
+                    opened_popup = True
+                else:
+                    self.logger.debug("Could not find conversations, refreshing logs...")
+                logs_raw = self.driver.get_log("performance")  # Refresh logs
+
+        else:
+            self.logger.debug("Timeout reached, failed to get shared conversations")
+            return None
+
+        self.logger.debug("Found shared conversations")
+
+        ret = self.driver.execute_cdp_cmd("Network.getResponseBody", {"requestId": data})
+
+        response_data = loads(ret["body"])
+
+        return SharedConversations(
+            response_data["items"],
+            response_data["has_missing_conversations"],
+            response_data["limit"],
+            response_data["offset"],
+            response_data["total"]
+        )
 
     def send_message(
         self,
@@ -459,7 +631,7 @@ class ChatGPT:
 
         if not self._conversation_id:
             self.logger.debug(f"New conversation, cathing the id.")
-            self._catch_conversation_id()
+            self._get_conversation_id()
 
         return ChatGPTResponse(content, self._conversation_id)
 
@@ -546,9 +718,10 @@ class ChatGPT:
             return self.logger.debug("Current URL is not chat page, skipping reset")
 
         self.logger.debug("Resetting conversation...")
-        clicked = self.driver.safe_click(CGPTV.new_chat, timeout=60)
+        button = CGPTV.new_chat if self._history_and_training_enabled else CGPTV.clear_chat
+        clicked = self.driver.safe_click(button, timeout=60)
         if not clicked:
-            self.logger.debug("New chat button not found")
+            self.logger.debug(f"{button[1]} button not found")
             return self._get_out_of_menu()
         self.logger.debug("Conversation reset")
 
@@ -582,7 +755,7 @@ class ChatGPT:
 
             self.logger.debug("Cleared all conversations")
             self._get_out_of_menu()
-        except NoSuchElementException:
+        except NoSuchElementException: # type: ignore
             self.logger.debug("Could not find menu buttons")
             return self._get_out_of_menu()
 
@@ -660,7 +833,7 @@ class ChatGPT:
 
             self.logger.debug("Theme switched")
             self._get_out_of_menu()
-        except NoSuchElementException:
+        except NoSuchElementException: # type: ignore
             self.logger.debug("Could not find theme buttons")
             return self._get_out_of_menu()
 
@@ -827,12 +1000,14 @@ class ChatGPT:
             self.logger.debug(
                 f'Chat history is now {"enabled" if state else "disabled"}'
             )
-            self._get_out_of_menu()
         except:
             self.logger.debug(
                 f'Could not {"enable" if state else "disable"} chat history'
             )
-            return self._get_out_of_menu()
+        
+        self._history_and_training_enabled = state
+
+        return self._get_out_of_menu()
 
     def switch_conversation(self, conversation_id: str) -> None:
         """
