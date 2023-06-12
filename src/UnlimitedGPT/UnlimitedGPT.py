@@ -457,7 +457,7 @@ class ChatGPT:
 
         self.logger.debug(f"Message sent")
 
-        if self._conversation_id is None:
+        if not self._conversation_id:
             self.logger.debug(f"New conversation, cathing the id.")
             self._catch_conversation_id()
 
