@@ -1,8 +1,11 @@
 # UnlimitedGPT Changelog
 All notable changes to this project will be documented in this file.
 
-## [0.1.6] 2023/06/?
+## [0.1.7] 2023/06/26
+- Fixed `send_message`, `regenerate_response`, `switch_theme`, `toggle_chat_history`, `regenerate_response` and more functions because of a new site updated.
+- Updated some selectors.
 
+## [0.1.6] 2023/06/13
 - Fixed `reset_conversation` not working when the chat history and training is disabled.
 - Added `_get_conversation_id` which is used in `send_message` to update the conversation ID. 
     - Thanks to [@ezyyeah](https://github.com/ezyyeah) for their awesome contribution!
