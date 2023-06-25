@@ -300,14 +300,12 @@ class Accounts:
             data (dict)
         """
         self.default = DefaultAccount(**data["accounts"]['default'])
-        self.account_invites: list = data['account_invites']
-        self.temp_ap_available_at: str = data['temp_ap_available_at']
 
     def __str__(self):
-        return f"<Accounts default={self.default} account_invites={self.account_invites} temp_ap_available_at={self.temp_ap_available_at}>"
+        return f"<Accounts default={self.default}>"
 
     def __repr__(self):
-        return f"<Accounts default={self.default} account_invites={self.account_invites} temp_ap_available_at={self.temp_ap_available_at}>"
+        return f"<Accounts default={self.default}>"
 
 class SharedConversation:
     """Class representing a shared conversation."""
