@@ -21,7 +21,7 @@ setup(
         "Issue tracker": "https://github.com/Sxvxgee/UnlimitedGPT/issues",
         "Changelog": "https://github.com/Sxvxgee/UnlimitedGPT/blob/main/CHANGELOG.md",
     },
-    version="0.1.7",
+    version="0.1.8",
     packages=["UnlimitedGPT", "UnlimitedGPT/internal"],
     py_modules=["UnlimitedGPT"],
     license="GPL-3.0 license",
