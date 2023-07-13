@@ -15,6 +15,9 @@ class ChatGPTVariables:
 
     # Popups and such
     info_buttons = (
+        (By.XPATH, '//*[@id="radix-:rg:"]/div[2]/div[1]/div[2]/button'),
+        (By.XPATH, '//*[@id="radix-:rg:"]/div[2]/div[1]/div[2]/button[2]'),
+        (By.XPATH, '//*[@id="radix-:rg:"]/div[2]/div[1]/div[2]/button[2]'),
         (By.XPATH, "/html/body/div[3]/div/div/div/div[2]/div/div[2]/button"),
         (By.XPATH, "/html/body/div[3]/div/div/div/div[2]/div/div[2]/button[2]"),
         (By.XPATH, "/html/body/div[3]/div/div/div/div[2]/div/div[2]/button[2]"),
