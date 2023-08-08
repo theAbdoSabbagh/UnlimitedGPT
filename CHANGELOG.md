@@ -1,6 +1,15 @@
 # UnlimitedGPT Changelog
 All notable changes to this project will be documented in this file.
 
+## [0.1.8] 2023/08/08
+> Been extremely busy so I couldn't maintain the project.
+- Fixed `_check_blocking_elements` not working due to change in XPATH of buttons.
+- Fixed typos in logging.
+- Fixed regenerating the response.
+- Fixed clearing chats.
+- Updated `Account` object.
+- Removed `Accounts` object.
+
 ## [0.1.7] 2023/06/26
 - Fixed `send_message`, `regenerate_response`, `switch_theme`, `toggle_chat_history`, `regenerate_response` and more functions because of a new site updated.
 - Updated some selectors.
