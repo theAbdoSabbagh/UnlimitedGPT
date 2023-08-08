@@ -4,12 +4,20 @@ from setuptools import find_packages, setup
 
 base_path = os.path.abspath(os.path.dirname(__file__))
 
+# requirements = []
+# with open(os.path.join(os.path.dirname(base_path), "requirements.txt")) as f:
+#     requirements = f.read().splitlines()
+
+# readme = ""
+# with open(os.path.join(os.path.dirname(base_path), "README.md")) as f:
+#     readme = f.read()
+
 requirements = []
-with open(os.path.join(os.path.dirname(base_path), "requirements.txt")) as f:
+with open("requirements.txt") as f:
     requirements = f.read().splitlines()
 
 readme = ""
-with open(os.path.join(os.path.dirname(base_path), "README.md")) as f:
+with open("README.md") as f:
     readme = f.read()
 
 setup(
@@ -21,9 +29,9 @@ setup(
         "Issue tracker": "https://github.com/Sxvxgee/UnlimitedGPT/issues",
         "Changelog": "https://github.com/Sxvxgee/UnlimitedGPT/blob/main/CHANGELOG.md",
     },
-    version="0.1.7",
-    packages=["UnlimitedGPT", "UnlimitedGPT/internal"],
-    py_modules=["UnlimitedGPT"],
+    version="0.1.8",
+    packages=find_packages(),
+    # py_modules=["UnlimitedGPT"],
     license="GPL-3.0 license",
     description="An unofficial Python wrapper for OpenAI's ChatGPT API",
     long_description=readme,
