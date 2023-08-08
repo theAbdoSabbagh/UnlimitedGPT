@@ -15,9 +15,9 @@ class ChatGPTVariables:
 
     # Popups and such
     info_buttons = (
-        (By.XPATH, "/html/body/div[3]/div/div/div/div[2]/div/div[2]/button"),
-        (By.XPATH, "/html/body/div[3]/div/div/div/div[2]/div/div[2]/button[2]"),
-        (By.XPATH, "/html/body/div[3]/div/div/div/div[2]/div/div[2]/button[2]"),
+        (By.XPATH, '//*[@id="radix-:rf:"]/div[2]/div/div[2]/button'),
+        (By.XPATH, '//*[@id="radix-:rf:"]/div[2]/div/div[2]/button[2]'),
+        (By.XPATH, '//*[@id="radix-:rf:"]/div[2]/div/div[2]/button[2]'),
     )
     alert = (By.XPATH, '//div[@role="alert"]')
     intro = (By.ID, "headlessui-portal-root")
@@ -39,7 +39,7 @@ class ChatGPTVariables:
     )
     regenerate_response = (
         By.XPATH,
-        "/html/body/div[1]/div[1]/div[2]/div/main/div[3]/form/div/div[1]/div/button",
+        "/html/body/div[1]/div[1]/div[2]/div/main/div[2]/form/div/div[1]/div/div[2]/div/button",
     )
     new_chat = (By.LINK_TEXT, "New chat")
     clear_chat = (By.LINK_TEXT, "Clear chat")
@@ -50,10 +50,13 @@ class ChatGPTVariables:
         "/html/body/div[1]/div[1]/div[1]/div/div/div/nav/div[4]/div/button",
     )
     menu_clear_conversations = (
-        By.LINK_TEXT,
-        "Clear conversations",
+        By.XPATH,
+        "//div[contains(text(), 'Clear all chats')]/following-sibling::button"
     )
-    menu_confirm_clear_conversations = (By.LINK_TEXT, "Confirm clear conversations")
+    menu_confirm_clear_conversations = (
+        By.XPATH,
+        '//button[@class="btn relative btn-primary"]/div[text()="Confirm deletion"]'
+    )
     menu_settings = (
         By.LINK_TEXT,
         "Settings",

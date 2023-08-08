@@ -173,6 +173,8 @@ class Account:
         account_id: str,
         is_most_recent_expired_subscription_gratis: bool,
         has_previously_paid_subscription: bool,
+        name: Optional[str],
+        structure: str,
     ):
         """
         Initialize an Account object.
@@ -186,43 +188,45 @@ class Account:
             is_most_recent_expired_subscription_gratis (bool)
             has_previously_paid_subscription (bool)            
         """
-        self.account_user_role = account_user_role
-        self.account_user_id = account_user_id
-        self.processor = processor
         self.account_id = account_id
-        self.is_most_recent_expired_subscription_gratis = is_most_recent_expired_subscription_gratis
+        self.account_user_id = account_user_id
+        self.account_user_role = account_user_role
         self.has_previously_paid_subscription = has_previously_paid_subscription
+        self.is_most_recent_expired_subscription_gratis = is_most_recent_expired_subscription_gratis
+        self.name = name
+        self.processor = processor
+        self.structure = structure
 
     def __str__(self):
-        return f"<Account account_user_role={self.account_user_role} account_user_id={self.account_user_id} processor={self.processor} account_id={self.account_id} is_most_recent_expired_subscription_gratis={self.is_most_recent_expired_subscription_gratis} has_previously_paid_subscription={self.has_previously_paid_subscription}>"
+        return f"<Account account_user_role={self.account_user_role} account_user_id={self.account_user_id} processor={self.processor} account_id={self.account_id} is_most_recent_expired_subscription_gratis={self.is_most_recent_expired_subscription_gratis} has_previously_paid_subscription={self.has_previously_paid_subscription} structure={self.structure} name={self.name}>"
 
     def __repr__(self):
-        return f"<Account account_user_role={self.account_user_role} account_user_id={self.account_user_id} processor={self.processor} account_id={self.account_id} is_most_recent_expired_subscription_gratis={self.is_most_recent_expired_subscription_gratis} has_previously_paid_subscription={self.has_previously_paid_subscription}>"
+        return f"<Account account_user_role={self.account_user_role} account_user_id={self.account_user_id} processor={self.processor} account_id={self.account_id} is_most_recent_expired_subscription_gratis={self.is_most_recent_expired_subscription_gratis} has_previously_paid_subscription={self.has_previously_paid_subscription} structure={self.structure} name={self.name}>"
 
 class Entitlement:
     """Class representing an account's entitlement."""
 
     def __init__(
         self,
-        subscription_id: Optional[Any],
-        has_active_subscription: bool,
-        subscription_plan: str,
         expires_at: Optional[Any],
+        has_active_subscription: bool,
+        subscription_id: Optional[Any],
+        subscription_plan: str,
     ):
         """
         Initialize an Entitlement object.
 
         Args:
         ----------
-            subscription_id (Optional[Any])
-            has_active_subscription (bool)
-            subscription_plan (str)
             expires_at (Optional[Any])
+            has_active_subscription (bool)
+            subscription_id (Optional[Any])
+            subscription_plan (str)
         """
-        self.subscription_id = subscription_id
-        self.has_active_subscription = has_active_subscription
-        self.subscription_plan = subscription_plan
         self.expires_at = expires_at
+        self.has_active_subscription = has_active_subscription
+        self.subscription_id = subscription_id
+        self.subscription_plan = subscription_plan
     
     def __str__(self):
         return f"<Entitlement subscription_id={self.subscription_id} has_active_subscription={self.has_active_subscription} subscription_plan={self.subscription_plan} expires_at={self.expires_at}>"
@@ -235,8 +239,8 @@ class LastActiveSubscription:
 
     def __init__(
         self,
-        subscription_id: Optional[Any],
         purchase_origin_platform: str,
+        subscription_id: Optional[Any],
         will_renew: bool
     ):
         """
@@ -244,12 +248,12 @@ class LastActiveSubscription:
 
         Args:
         ----------
-            subscription_id (Optional[Any])
             purchase_origin_platform (str)
+            subscription_id (Optional[Any])
             will_renew (bool)
         """
-        self.subscription_id = subscription_id
         self.purchase_origin_platform = purchase_origin_platform
+        self.subscription_id = subscription_id
         self.will_renew = will_renew
 
     def __str__(self):
@@ -284,28 +288,6 @@ class DefaultAccount:
 
     def __repr__(self):
         return f"<DefaultAccount account={self.account} features={self.features} entitlement={self.entitlement} last_active_subscription={self.last_active_subscription}>"
-
-class Accounts:
-    """Class representing a list of ChatGPT accounts."""
-
-    def __init__(
-        self,
-        data: dict
-    ):
-        """
-        Initialize an Accounts object.
-
-        Args:
-        ----------
-            data (dict)
-        """
-        self.default = DefaultAccount(**data["accounts"]['default'])
-
-    def __str__(self):
-        return f"<Accounts default={self.default}>"
-
-    def __repr__(self):
-        return f"<Accounts default={self.default}>"
 
 class SharedConversation:
     """Class representing a shared conversation."""

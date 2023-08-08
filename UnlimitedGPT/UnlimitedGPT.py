@@ -21,10 +21,10 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.wait import WebDriverWait
 from undetected_chromedriver import ChromeOptions
 
-from .internal.chatgpt_data import ChatGPTVariables as CGPTV
+from .internal.selectors import ChatGPTVariables as CGPTV
 from .internal.driver import ChatGPTDriver
 from .internal.exceptions import InvalidConversationID
-from .internal.objects import ChatGPTResponse, Conversations, SessionData, SharedConversations, User, Accounts
+from .internal.objects import ChatGPTResponse, Conversations, DefaultAccount, SessionData, SharedConversations, User
 
 class ChatGPT:
     """
@@ -38,7 +38,7 @@ class ChatGPT:
         disable_moderation (bool, optional): Whether to disable moderation. Defaults to True.
         verbose (bool, optional): Whether to enable verbose logging. Defaults to False.
         headless (bool, optional): Whether to run the browser in headless mode. Defaults to False.
-        chrome_args (list, optional): Additional arguments for the Chrome browser. Defaults to [].
+        chrome_args (list): Additional arguments for the Chrome browser. Defaults to [].
 
     Raises:
     ----------
@@ -62,7 +62,7 @@ class ChatGPT:
         self._proxy = proxy
         self._disable_moderation = disable_moderation
         self._headless = headless
-        self._chrome_args = chrome_args
+        self._chrome_args = chrome_args or []
         self._clicked_buttons = False
         self._history_and_training_enabled = True
         self._init_logger(verbose)
@@ -211,7 +211,7 @@ class ChatGPT:
                 self.logger.debug(f"Failed to update session: {str(e)}")
             sleep(60)
 
-    def _check_blocking_elements(self) -> None:
+    def _check_blocking_elements(self, ignore_conversation_alert: bool = False) -> None:
         """
         Check for blocking elements and dismiss them.
         """
@@ -227,13 +227,14 @@ class ChatGPT:
 
         alerts = self.driver.find_elements(*CGPTV.alert)
         if alerts:
-            if "unable to load conversation" in alerts[0].text.lower():
+            if "unable to load conversation" in alerts[0].text.lower() and ignore_conversation_alert is False:
                 raise InvalidConversationID(alerts[0].text)
             self.logger.debug("Dismissing alert...")
             self.driver.execute_script("arguments[0].remove()", alerts[0])
 
         if not self._clicked_buttons:
             for button in CGPTV.info_buttons:
+                self.logger.debug(f"Clicking {button[1]} button")
                 self.driver.safe_click(button, timeout=60)
             self._clicked_buttons = True
 
@@ -296,7 +297,7 @@ class ChatGPT:
         ----------
             Optional[str]: The newly generated response.
         """
-        self.logger.debug("Continuing generating...")
+        self.logger.debug("Continuing generation...")
         # Click "Continue generating" button
         continue_response_clicked = self.driver.safe_click(
             CGPTV.continue_regenerating, timeout=5
@@ -412,7 +413,7 @@ class ChatGPT:
 
         return self._get_out_of_menu()
 
-    def get_user_data(self) -> Optional[Accounts]:
+    def get_user_data(self) -> Optional[DefaultAccount]:
         """
         Gets the user data.
 
@@ -444,7 +445,7 @@ class ChatGPT:
 
         response_data = loads(ret["body"])
 
-        return Accounts(response_data)
+        return DefaultAccount(**response_data["accounts"]['default'])
 
     def get_conversations(self) -> Conversations:
         """
@@ -487,7 +488,7 @@ class ChatGPT:
             response_data["total"]
         )
 
-    def get_shared_conversations(self, timeout: float = 5) -> SharedConversations:
+    def get_shared_conversations(self, timeout: float = 5) -> Optional[SharedConversations]:
         """
         Get a list of shared conversations.
 
@@ -640,7 +641,7 @@ class ChatGPT:
         self.logger.debug(f"Message sent")
 
         if not self._conversation_id:
-            self.logger.debug(f"New conversation, cathing the id.")
+            self.logger.debug(f"New conversation, catching the ID.")
             self._get_conversation_id()
 
         return ChatGPTResponse(content, self._conversation_id)
@@ -747,13 +748,17 @@ class ChatGPT:
                 return self._get_out_of_menu()
             self.logger.debug("Clicked menu button")
 
-            clear_conversations_button_clicked = self.driver.safe_click(
-                CGPTV.menu_clear_conversations, timeout=60
-            )
-            if not clear_conversations_button_clicked:
-                self.logger.debug("Could not click clear conversations button")
+            settings_button_clicked = self.driver.safe_click(CGPTV.menu_settings)
+            if not settings_button_clicked:
+                self.logger.debug("Could not click settings button")
                 return self._get_out_of_menu()
-            self.logger.debug("Clicked clear conversations button")
+            self.logger.debug("Clicked settings button")
+
+            clear_button_clicked = self.driver.safe_click(CGPTV.menu_clear_conversations)
+            if not clear_button_clicked:
+                self.logger.debug("Could not click menu clear button")
+                return self._get_out_of_menu()
+            self.logger.debug("Clicked menu clear button")
 
             confirm_clear_button_clicked = self.driver.safe_click(
                 CGPTV.menu_confirm_clear_conversations, timeout=60
@@ -765,8 +770,8 @@ class ChatGPT:
 
             self.logger.debug("Cleared all conversations")
             self._get_out_of_menu()
-        except NoSuchElementException: # type: ignore
-            self.logger.debug("Could not find menu buttons")
+        except NoSuchElementException as e: # type: ignore
+            self.logger.debug(f"Could not find menu buttons, exc: {e}")
             return self._get_out_of_menu()
 
     def switch_theme(
@@ -929,7 +934,7 @@ class ChatGPT:
         self.logger.debug("Opening chat page...")
         self.driver.get(f"{CGPTV.chat_url}/{self._conversation_id}")
         self.logger.debug("Opened chat page")
-        self._check_blocking_elements()
+        self._check_blocking_elements(ignore_conversation_alert=True)
         self.logger.debug("Switched account")
         return session_data
 
