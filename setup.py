@@ -4,14 +4,6 @@ from setuptools import find_packages, setup
 
 base_path = os.path.abspath(os.path.dirname(__file__))
 
-# requirements = []
-# with open(os.path.join(os.path.dirname(base_path), "requirements.txt")) as f:
-#     requirements = f.read().splitlines()
-
-# readme = ""
-# with open(os.path.join(os.path.dirname(base_path), "README.md")) as f:
-#     readme = f.read()
-
 requirements = []
 with open("requirements.txt") as f:
     requirements = f.read().splitlines()
