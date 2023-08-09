@@ -21,10 +21,10 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.wait import WebDriverWait
 from undetected_chromedriver import ChromeOptions
 
-from .internal.selectors import ChatGPTVariables as CGPTV
-from .internal.driver import ChatGPTDriver
-from .internal.exceptions import InvalidConversationID
-from .internal.objects import ChatGPTResponse, Conversations, DefaultAccount, SessionData, SharedConversations, User
+from UnlimitedGPT.internal.selectors import ChatGPTVariables as CGPTV
+from UnlimitedGPT.internal.driver import ChatGPTDriver
+from UnlimitedGPT.internal.exceptions import InvalidConversationID
+from UnlimitedGPT.internal.objects import ChatGPTResponse, Conversations, DefaultAccount, SessionData, SharedConversations, User
 
 class ChatGPT:
     """
@@ -604,6 +604,7 @@ class ChatGPT:
         textbox.send_keys(Keys.ENTER)
 
         self.logger.debug("Waiting for completion...")
+        sleep(1.25)
         WebDriverWait(self.driver, timeout).until_not(
             EC.presence_of_element_located(CGPTV.streaming)
         )
