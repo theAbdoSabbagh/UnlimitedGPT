@@ -22,6 +22,7 @@ UnlimitedGPT works on Windows, Linux and macOS. It also works on Google Colab an
 -   [x] Proxy support (only without basic auth)
 -   [x] Automate almost everything in ChatGPT.
 -   [x] Supports sending messages and receiving responses, as well as regenerating them.
+-   [x] Supports using the **BACKEND API**!
 -   [x] Supports imitating human typing, with cusotmized delays.
 -   [x] Supports switching between different accounts.
 -   [x] Supports switching between different themes.

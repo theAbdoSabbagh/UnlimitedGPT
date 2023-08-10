@@ -94,7 +94,6 @@ message = api.send_message(
     "Hey ChatGPT!",
     input_mode="INSANT", # Can be INSTANT or SLOW
     input_delay=0.1, # Only used when input_mode is set to SLOW
-    continue_generating=True # If set to True, it will continue generating the response if the button was presented
 )
 print(message.response, message.conversation_id)
 ```
@@ -103,7 +102,6 @@ print(message.response, message.conversation_id)
 message = api.regenerate_response(
     message_timeout=240, # Time to wait for the message to regenerate before timing out.
     click_timeout=20, #  Time to wait for the button to be clicked before timing out.
-    continue_generating=True # If set to True, it will continue generating the response if the button was presented
 ) # Regenerates the last response sent by ChatGPT
 print(message.response, message.conversation_id)
 ```
