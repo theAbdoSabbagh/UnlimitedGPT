@@ -1,6 +1,17 @@
 # UnlimitedGPT Changelog
 All notable changes to this project will be documented in this file.
 
+## [0.1.9] 2023/08/10
+- Updated selectors yet again.
+- Added a smart solution to dismissing the onboarding box that pops out when logged into an account:
+    - Instead of constantly using XPATHs to click the "Next" buttons and suffering as it sometimes just refuses to click, or when the website updates and the selectors are changed, I came up with the solution of adding an item to the `localStorage` of the ChatGPT website that marks the user as already seen the onboarding popup.
+- Instead of the old, hard to maintain way of using XPATHs to get the response from ChatGPT, I've decided to use the copying machanism instead.
+    - Clicking CTRL + SHIFT + C copies the last response from ChatGPT, so I've used that to our advantage.
+- Removed continue generating mechanism as I just couldn't get a single case where there was a need to continue generating as ChatGPT now seems to write a lot more than before in a single message.
+- Updated `ChatGPTResponse` object to have a boolean attribute called `failed` which indicates whether the library failed to get the response from ChatGPT Or not.
+- Added an element visibility check to the custom `safe_click` function within the driver of UnlimitedGPT.
+- Updated `requirements.txt` and the `README.md`.
+
 ## [0.1.8] 2023/08/08
 > Been extremely busy so I couldn't maintain the project.
 - Fixed `_check_blocking_elements` not working due to change in XPATH of buttons.
