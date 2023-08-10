@@ -92,7 +92,7 @@ api = ChatGPT(...)
 ```py
 message = api.send_message(
     "Hey ChatGPT!",
-    input_mode="INSANT", # Can be INSTANT or SLOW
+    input_mode="INSTANT", # Can be INSTANT or SLOW
     input_delay=0.1, # Only used when input_mode is set to SLOW
 )
 print(message.response, message.conversation_id)
