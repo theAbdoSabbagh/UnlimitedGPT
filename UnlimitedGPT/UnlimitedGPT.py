@@ -573,8 +573,11 @@ class ChatGPT:
             return None
 
         if not self._conversation_id:
-            self.logger.debug(f"New conversation, catching the ID.")
-            self._get_conversation_id()
+            self.logger.debug(f"New conversation, attempting to catch the ID...")
+            try:
+                self._get_conversation_id()
+            except:
+                pass
 
         return ChatGPTResponse(response = response, conversation_id = self._conversation_id)
 
