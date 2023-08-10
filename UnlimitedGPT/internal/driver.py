@@ -30,6 +30,7 @@ class ChatGPTDriver(uc.Chrome):
         """
         wait = WebDriverWait(self, timeout)
         try:
+            wait.until(EC.visibility_of_element_located(mark))
             element = wait.until(EC.element_to_be_clickable(mark))
             element.click()
         except:
