@@ -14,11 +14,6 @@ class ChatGPTVariables:
     )
 
     # Popups and such
-    info_buttons = (
-        (By.XPATH, '//*[@id="radix-:rf:"]/div[2]/div/div[2]/button'),
-        (By.XPATH, '//*[@id="radix-:rf:"]/div[2]/div/div[2]/button[2]'),
-        (By.XPATH, '//*[@id="radix-:rf:"]/div[2]/div/div[2]/button[2]'),
-    )
     alert = (By.XPATH, '//div[@role="alert"]')
     intro = (By.ID, "headlessui-portal-root")
 
@@ -27,16 +22,12 @@ class ChatGPTVariables:
         By.XPATH,
         '//div[starts-with(@class, "result-streaming markdown prose")]',
     )
-    big_response = (By.XPATH, '//div[@class="flex-1 overflow-hidden"]//div[p]')
-    small_response = (
+    potential_error_response = (By.XPATH, '//div[@class="flex-1 overflow-hidden"]//div[p]')
+    normal_response = (
         By.XPATH,
-        '//div[starts-with(@class, "markdown prose w-full break-words")]',
+        '//*[@id="__next"]/div[1]/div[2]/div/main/div[1]/div/div/div/div[2]/div/div[2]/div[1]/div/div/p'
     )
     textbox = (By.XPATH, '//*[@id="prompt-textarea"]')
-    continue_regenerating = (
-        By.XPATH,
-        "/html/body/div[1]/div[1]/div[2]/div/main/div[3]/form/div/div[1]/div/button[2]",
-    )
     regenerate_response = (
         By.XPATH,
         "/html/body/div[1]/div[1]/div[2]/div/main/div[2]/form/div/div[1]/div/div[2]/div/button",
