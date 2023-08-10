@@ -358,7 +358,6 @@ class ChatGPT:
     def _get_new_response(self):
         body = self.driver.find_element(By.TAG_NAME, "body")
         body.send_keys(Keys.LEFT_CONTROL, Keys.LEFT_SHIFT, "c")
-        print(pyperclip.paste())
         return pyperclip.paste()
 
     def get_user_data(self) -> Optional[DefaultAccount]:
