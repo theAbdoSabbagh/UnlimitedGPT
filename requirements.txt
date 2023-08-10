@@ -1,4 +1,3 @@
 undetected-chromedriver==3.4.5
 selenium==4.9.1
-markdownify==0.11.6
 PyVirtualDisplay==3.0
