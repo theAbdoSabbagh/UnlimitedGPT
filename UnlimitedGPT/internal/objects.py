@@ -7,16 +7,23 @@ class ChatGPTResponse:
     The response object returned by ChatGPT
     """
 
-    def __init__(self, response: str, conversation_id: Optional[str] = None):
+    def __init__(
+        self,
+        response: str,
+        failed: bool = False,
+        conversation_id: Optional[str] = None,
+    ):
         """
         Initialize a ChatGPTResponse object.
 
         Args:
         ----------
             response (str): The response from ChatGPT.
+            failed (bool): Whether it failed to get the response from ChatGPT or not.
             conversation_id (Optional[str]): The conversation ID.
         """
         self.response = response
+        self.failed = failed
         self.conversation_id = conversation_id
 
     def __str__(self):
