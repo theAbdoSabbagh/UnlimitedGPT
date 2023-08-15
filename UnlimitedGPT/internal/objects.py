@@ -9,7 +9,7 @@ class ChatGPTResponse:
 
     def __init__(
         self,
-        response: str,
+        response: Optional[str],
         failed: bool = False,
         conversation_id: Optional[str] = None,
     ):
