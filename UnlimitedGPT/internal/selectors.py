@@ -15,7 +15,6 @@ class ChatGPTVariables:
 
     # Popups and such
     alert = (By.XPATH, '//div[@role="alert"]')
-    intro = (By.ID, "headlessui-portal-root")
 
     # Responses and such
     streaming = (
@@ -52,6 +51,10 @@ class ChatGPTVariables:
         By.LINK_TEXT,
         "Settings",
     )
+    menu_custom_instructions = (
+        By.LINK_TEXT,
+        "Custom instructions",
+    )
     theme_button = (By.CSS_SELECTOR, "button[role='combobox']")
     data_controls = (
         By.CSS_SELECTOR,
@@ -60,6 +63,24 @@ class ChatGPTVariables:
     shared_links_manage = (
         By.XPATH,
         "//button[.//div[text()='Manage']]"
+    )
+
+    # Custom instructions
+    user_information_textbox = (
+        By.XPATH,
+        "/html/body/div[5]/div/div/div/div[2]/div[1]/textarea"
+    )
+    response_way_textbox = (
+        By.XPATH,
+        "/html/body/div[5]/div/div/div/div[2]/div[2]/textarea"
+    )
+    save_instructions = (
+        By.XPATH,
+        "/html/body/div[5]/div/div/div/div[2]/div[3]/div/div/button[1]"
+    )
+    enable_for_new_chats_toggle = (
+        By.CSS_SELECTOR,
+        f'button[aria-label*="chat preferences"]' # Could be either disable or enable
     )
 
     # URLs
