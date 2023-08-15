@@ -1,6 +1,10 @@
 # UnlimitedGPT Changelog
 All notable changes to this project will be documented in this file.
 
+## [0.1.9.3] 2023/08/15
+- Added check for platform to use command when on MacOS instead of left control.
+- Added `pyperclip` to requirements.txt as it is a required library now.
+
 ## [0.1.9] 2023/08/10
 - Updated selectors yet again.
 - Added a smart solution to dismissing the onboarding box that pops out when logged into an account:
