@@ -373,7 +373,13 @@ class ChatGPT:
 
     def _get_new_response(self):
         body = self.driver.find_element(By.TAG_NAME, "body")
-        body.send_keys(Keys.LEFT_CONTROL, Keys.LEFT_SHIFT, "c")
+
+        if platform.system() == "Darwin":  # macOS
+            key_command = Keys.COMMAND
+        else:
+            key_command = Keys.LEFT_CONTROL
+
+        body.send_keys(key_command, Keys.LEFT_SHIFT, "c")
         return pyperclip.paste()
 
     def get_user_data(self) -> Optional[DefaultAccount]:
