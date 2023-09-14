@@ -41,6 +41,7 @@ class ChatGPT:
         verbose (bool, optional): Whether to enable verbose logging. Defaults to False.
         headless (bool, optional): Whether to run the browser in headless mode. Defaults to False.
         chrome_args (list): Additional arguments for the Chrome browser. Defaults to [].
+        browser_executable_path (str, optional)
 
     Raises:
     ----------
@@ -58,6 +59,7 @@ class ChatGPT:
         verbose: bool = False,
         headless: bool = False,
         chrome_args: list = [],
+        browser_executable_path: str = ''
     ) -> None:
         self._session_token = session_token
         self._conversation_id = conversation_id
@@ -157,7 +159,7 @@ class ChatGPT:
         for arg in self._chrome_args:
             options.add_argument(arg)
         try:
-            self.driver = ChatGPTDriver(options=options, headless=self._headless)
+            self.driver = ChatGPTDriver(options=options, headless=self._headless, browser_path=browser_executable_path)
         except TypeError as e:
             if str(e) == "expected str, bytes or os.PathLike object, not NoneType":
                 raise ValueError("Chrome installation not found")
