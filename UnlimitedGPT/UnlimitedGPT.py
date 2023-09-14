@@ -66,6 +66,7 @@ class ChatGPT:
         self._proxy = proxy
         self._disable_moderation = disable_moderation
         self._headless = headless
+        self._browser_path = browser_executable_path
         self._chrome_args = chrome_args or []
         self._seen_onboarding = False
         self._history_and_training_enabled = True
@@ -159,7 +160,7 @@ class ChatGPT:
         for arg in self._chrome_args:
             options.add_argument(arg)
         try:
-            self.driver = ChatGPTDriver(options=options, headless=self._headless, browser_path=browser_executable_path)
+            self.driver = ChatGPTDriver(options=options, headless=self._headless, browser_path=self._browser_path)
         except TypeError as e:
             if str(e) == "expected str, bytes or os.PathLike object, not NoneType":
                 raise ValueError("Chrome installation not found")
