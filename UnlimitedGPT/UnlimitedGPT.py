@@ -38,6 +38,7 @@ class ChatGPT:
         conversation_id (str, optional): The conversation ID. Defaults to ''.
         proxy (Optional[str], optional): The proxy server URL. Defaults to None.
         disable_moderation (bool, optional): Whether to disable moderation. Defaults to True.
+        clipboard_retrival (bool, optional): Whether to use the clipboard to retrieve the response (Faulty in WSL). Defaults to True.
         verbose (bool, optional): Whether to enable verbose logging. Defaults to False.
         headless (bool, optional): Whether to run the browser in headless mode. Defaults to False.
         chrome_args (list): Additional arguments for the Chrome browser. Defaults to [].
@@ -55,6 +56,7 @@ class ChatGPT:
         conversation_id: str = "",
         proxy: Optional[str] = None,
         disable_moderation: bool = False,
+        clipboard_retrival: bool = True,
         verbose: bool = False,
         headless: bool = False,
         chrome_args: list = [],
@@ -63,6 +65,7 @@ class ChatGPT:
         self._conversation_id = conversation_id
         self._proxy = proxy
         self._disable_moderation = disable_moderation
+        self._clipboard_retrival = clipboard_retrival
         self._headless = headless
         self._chrome_args = chrome_args or []
         self._seen_onboarding = False
@@ -359,13 +362,23 @@ class ChatGPT:
     def _get_new_response(self):
         body = self.driver.find_element(By.TAG_NAME, "body")
 
-        if platform.system() == "Darwin":  # macOS
-            key_command = Keys.COMMAND
-        else:
-            key_command = Keys.LEFT_CONTROL
+        if self._clipboard_retrival is True:
+            if platform.system() == "Darwin":  # macOS
+                key_command = Keys.COMMAND
+            else:
+                key_command = Keys.LEFT_CONTROL
 
-        body.send_keys(key_command, Keys.LEFT_SHIFT, "c")
-        return pyperclip.paste()
+            body.send_keys(key_command, Keys.LEFT_SHIFT, "c")
+            return pyperclip.paste()
+        else:
+            elements = self.driver.find_elements(By.CSS_SELECTOR, ".markdown")
+
+            # TODO: This will not work with codeblocks, fix later
+            # maybe itterate across all elements and join them all? idk
+            
+            last_element_text = elements[-1].text
+
+            return last_element_text
 
     def get_user_data(self) -> Optional[DefaultAccount]:
         """
