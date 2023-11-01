@@ -568,6 +568,10 @@ class ChatGPT:
         # Attachment
         if attachment is not None:
             assert self._model in [2, 3], "Only GPT-4 (2) and GPT-4 Code Interpreter (3) support attachments"
+            
+            wait = WebDriverWait(self.driver, 60)
+            wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, "div[type='button'] input[type='file']")))
+            
             file_input = self.driver.find_element(By.CSS_SELECTOR, "div[type='button'] input[type='file']")
             file_input.send_keys(attachment)
 

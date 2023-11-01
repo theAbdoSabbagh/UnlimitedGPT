@@ -56,6 +56,34 @@ chatbot = ChatGPT(
 )
 ```
 
+You can also select from different models:
+```py
+chatbot = ChatGPT(
+    session_token,
+    model=2 # <- Change this
+)
+```
+
+Available Models:
+
+- (0) Default
+- (1) GPT-3.5 Turbo
+- (2) GPT-4 (Attachments Available)
+- (3) GPT-4 Code Interpreter (Attachments Available)
+- (4) GPT-4 Plugins
+- (5) GPT-4 DALL-E
+
+If using a previously-initiated conversation, set model to 0
+
+If using WSL (Windows Subsystem for Linux), set `clipboard_retrival` to `False`:
+
+```py
+chatbot = ChatGPT(
+    session_token,
+    clipboard_retrival=False
+)
+```
+
 # Parameters
 
 - `session_token (str)`: The `__Secure-next-auth.session-token` cookie from https://chat.openai.com/chat.
@@ -96,6 +124,15 @@ message = api.send_message(
     input_delay=0.1, # Only used when input_mode is set to SLOW
 )
 print(message.response, message.conversation_id)
+```
+### Sending a message with an Image/File
+Note: Attachments **ONLY** work with GPT-4 `(2)` and GPT-4 Code Interpreter `(3)`
+```py
+message = api.send_message(
+    message="Describe this picture",
+    attachment="/home/user/image.jpg"
+)
+print(message.response)
 ```
 ### Regenrating a response
 ```py
@@ -192,14 +229,14 @@ for conversation in data.shared_conversations: # conversaion is of type Conversa
 - How do I report a bug?
     - You can report a bug by creating an issue [here](https://github.com/Sxvxgee/UnlimitedGPT/issues). Please make sure that you are using the latest version of the library before reporting a bug. Also, please make sure that the bug you are reporting has not been reported before.
 
-- Does this library support GPT-4?
-    - No, GPT-4 is a paid model, and I haven't subscribed to it. So, unless someone sponsors the project by giving me a GPT-4 subscription, I won't be able to add support for GPT-4.
-
-- When is interactive mode coming?
-    - Interactive mode is not on my priority list right now. I will add it when I have time.
-
 - Is this project affiliated with OpenAI?
     - No, this project is not affiliated with OpenAI in any way.
+
+- Why I can't send an attachment to GPT-3, GPT-4 Plugins, or GPT-4 DALL-E?
+    - None of these modalities support attachments, they are only available in GPT-4 and GPT-4 Code Interpreter.
+
+- I am getting "Unusual activity" when giving GPT-4 an image...
+    - Try setting `input_mode` to `SLOW`
 
 - Is this project safe to use?
     - Yes, this project is safe to use. However, if you are using this project to automate your conversations on https://chat.openai.com/chat, you might get banned. So, use this project at your own risk, as it is against the OpenAI's TOS.
