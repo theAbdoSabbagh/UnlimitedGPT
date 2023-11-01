@@ -2,6 +2,7 @@ import datetime
 import re
 import pyperclip
 import platform
+import os
 from json import loads
 from logging import DEBUG, Formatter, StreamHandler, getLogger
 from os import environ
@@ -24,6 +25,7 @@ from selenium.webdriver.support.wait import WebDriverWait
 from undetected_chromedriver import ChromeOptions
 
 from UnlimitedGPT.internal.selectors import ChatGPTVariables as CGPTV
+from UnlimitedGPT.internal.selectors import ChatGPTModels as CGPTM
 from UnlimitedGPT.internal.driver import ChatGPTDriver
 from UnlimitedGPT.internal.exceptions import InvalidConversationID
 from UnlimitedGPT.internal.objects import ChatGPTResponse, Conversations, DefaultAccount, SessionData, SharedConversations, User
@@ -39,7 +41,7 @@ class ChatGPT:
         proxy (Optional[str], optional): The proxy server URL. Defaults to None.
         disable_moderation (bool, optional): Whether to disable moderation. Defaults to True.
         clipboard_retrival (bool, optional): Whether to use the clipboard to retrieve the response (Faulty in WSL). Defaults to True.
-        model (int, optional): Model to use, 1 for GPT 3.5 Turbo, 2 for GPT 4. Defaults to 1.
+        model (int, optional): Model to use, check docs for more info. Defaults to 0. Use 0 for pre-existing conversations.
         verbose (bool, optional): Whether to enable verbose logging. Defaults to False.
         headless (bool, optional): Whether to run the browser in headless mode. Defaults to False.
         chrome_args (list): Additional arguments for the Chrome browser. Defaults to [].
@@ -58,7 +60,7 @@ class ChatGPT:
         proxy: Optional[str] = None,
         disable_moderation: bool = False,
         clipboard_retrival: bool = True,
-        model: int = 1,
+        model: int = 0,
         verbose: bool = False,
         headless: bool = False,
         chrome_args: list = [],
@@ -80,10 +82,10 @@ class ChatGPT:
         ):
             raise ValueError("Invalid proxy format")
         
-        if self._model not in [1, 2]:
+        if self._model not in [0, 1, 2, 3, 4, 5]:
             raise ValueError("Invalid model")
         else:
-            if self._conversation_id != "":
+            if self._conversation_id != "" and self._model != 0:
                 raise ValueError("You can only set a model when creating a new conversation")
 
         self._init_browser()
@@ -201,10 +203,7 @@ class ChatGPT:
 
         self.logger.debug("Opening chat page...")
 
-        if self._model == 1:
-            model_parameters = "?model=text-davinci-002-render-sha"
-        elif self._model == 2:
-            model_parameters = "?model=gpt-4"
+        model_parameters = CGPTM[self._model]
 
         self.driver.get(f"{CGPTV.chat_url}/{self._conversation_id}{model_parameters}")
         self._check_blocking_elements()
@@ -532,6 +531,7 @@ class ChatGPT:
     def send_message(
         self,
         message: str,
+        attachment: os.PathLike = None,
         timeout: int = 240,
         input_mode: Literal["INSTANT", "SLOW"] = "INSTANT",
         input_delay: float = 0.1,
@@ -564,6 +564,19 @@ class ChatGPT:
         textbox = WebDriverWait(self.driver, 60).until(
             EC.element_to_be_clickable(CGPTV.textbox)
         )
+
+        # Attachment
+        if attachment is not None:
+            assert self._model in [2, 3], "Only GPT-4 (2) and GPT-4 Code Interpreter (3) support attachments"
+            file_input = self.driver.find_element(By.CSS_SELECTOR, "div[type='button'] input[type='file']")
+            file_input.send_keys(attachment)
+
+            # Wait until it finishes uploading
+            # NOTE: This could also be used to send the message rather than pressing enter?
+            WebDriverWait(self.driver, 60).until(
+                EC.element_to_be_clickable(CGPTV.send_message_button)
+            )
+
         if input_mode == "INSTANT":
             self.driver.execute_script(
                 "arguments[0].value = arguments[1];", textbox, message

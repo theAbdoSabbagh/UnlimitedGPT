@@ -2,6 +2,14 @@ from dataclasses import dataclass
 
 from selenium.webdriver.common.by import By
 
+ChatGPTModels = [
+    "",
+    "?model=text-davinci-002-render-sha",
+    "?model=gpt-4",
+    "?model=gpt-4-code-interpreter",
+    "?model=gpt-4-plugins",
+    "?model=gpt-4-dalle"
+]
 
 @dataclass
 class ChatGPTVariables:
@@ -60,6 +68,10 @@ class ChatGPTVariables:
     shared_links_manage = (
         By.XPATH,
         "//button[.//div[text()='Manage']]"
+    )
+    send_message_button = (
+        By.CSS_SELECTOR, 
+        'button[data-testid="send-button"]'
     )
 
     # URLs
