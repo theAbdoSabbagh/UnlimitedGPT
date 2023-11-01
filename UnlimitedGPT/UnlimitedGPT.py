@@ -39,6 +39,7 @@ class ChatGPT:
         proxy (Optional[str], optional): The proxy server URL. Defaults to None.
         disable_moderation (bool, optional): Whether to disable moderation. Defaults to True.
         clipboard_retrival (bool, optional): Whether to use the clipboard to retrieve the response (Faulty in WSL). Defaults to True.
+        model (int, optional): Model to use, 1 for GPT 3.5 Turbo, 2 for GPT 4. Defaults to 1.
         verbose (bool, optional): Whether to enable verbose logging. Defaults to False.
         headless (bool, optional): Whether to run the browser in headless mode. Defaults to False.
         chrome_args (list): Additional arguments for the Chrome browser. Defaults to [].
@@ -57,6 +58,7 @@ class ChatGPT:
         proxy: Optional[str] = None,
         disable_moderation: bool = False,
         clipboard_retrival: bool = True,
+        model: int = 1,
         verbose: bool = False,
         headless: bool = False,
         chrome_args: list = [],
@@ -66,6 +68,7 @@ class ChatGPT:
         self._proxy = proxy
         self._disable_moderation = disable_moderation
         self._clipboard_retrival = clipboard_retrival
+        self._model = model
         self._headless = headless
         self._chrome_args = chrome_args or []
         self._seen_onboarding = False
@@ -76,6 +79,12 @@ class ChatGPT:
             r"(https?|socks(4|5)?):\/\/.+:\d{1,5}", self._proxy  # type: ignore
         ):
             raise ValueError("Invalid proxy format")
+        
+        if self._model not in [1, 2]:
+            raise ValueError("Invalid model")
+        else:
+            if self._conversation_id != "":
+                raise ValueError("You can only set a model when creating a new conversation")
 
         self._init_browser()
         finalize(self, self.__del__)
@@ -191,7 +200,13 @@ class ChatGPT:
         self._ensure_cf()
 
         self.logger.debug("Opening chat page...")
-        self.driver.get(f"{CGPTV.chat_url}/{self._conversation_id}")
+
+        if self._model == 1:
+            model_parameters = "?model=text-davinci-002-render-sha"
+        elif self._model == 2:
+            model_parameters = "?model=gpt-4"
+
+        self.driver.get(f"{CGPTV.chat_url}/{self._conversation_id}{model_parameters}")
         self._check_blocking_elements()
 
         self._is_active = True
@@ -375,7 +390,7 @@ class ChatGPT:
 
             # TODO: This will not work with codeblocks, fix later
             # maybe itterate across all elements and join them all? idk
-            
+
             last_element_text = elements[-1].text
 
             return last_element_text
