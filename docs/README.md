@@ -56,34 +56,6 @@ chatbot = ChatGPT(
 )
 ```
 
-You can also select from different models:
-```py
-chatbot = ChatGPT(
-    session_token,
-    model=2 # <- Change this
-)
-```
-
-Available Models:
-
-- (0) Default
-- (1) GPT-3.5 Turbo
-- (2) GPT-4 (Attachments Available)
-- (3) GPT-4 Code Interpreter (Attachments Available)
-- (4) GPT-4 Plugins
-- (5) GPT-4 DALL-E
-
-If using a previously-initiated conversation, set model to 0
-
-If using WSL (Windows Subsystem for Linux), set `clipboard_retrival` to `False`:
-
-```py
-chatbot = ChatGPT(
-    session_token,
-    clipboard_retrival=False
-)
-```
-
 # Parameters
 
 - `session_token (str)`: The `__Secure-next-auth.session-token` cookie from https://chat.openai.com/chat.
@@ -92,6 +64,8 @@ chatbot = ChatGPT(
         - Example: The conversation ID in the URL `https://chat.openai.com/c/aa4f2349-8090-42a8-b8dc-0d116ce6b712` is `aa4f2349-8090-42a8-b8dc-0d116ce6b712`.
 - `proxy (Optional[str])`: The proxy to use. Defaults to `None`.
 - `disable_moderation (bool)`: Whether to disable moderation or not. Defaults to `False`.
+- `model (int)`: Model to use, check the section "Available Models" for more information.
+- `clipboard_retrival (int)`: Wether to use the clipboard to retrieve the response (**Doesn't works in WSL**), or directly extract it from the HTML object. Defaults to `True` (Clipboard).
 - `verbose (bool)`: Whether to print debug messages or not. Defaults to `False`.
 - `headless (bool)`: Whether to run Chrome in headless mode or not. Defaults to `True`.
 - `chrome_args: (list)`: The Chrome arguments to use. Defaults to `[]`.
@@ -103,6 +77,17 @@ chatbot = ChatGPT(
 3. Copy the value in the `Cookie Value` field.
 
 ![image](https://user-images.githubusercontent.com/19218518/206170122-61fbe94f-4b0c-4782-a344-e26ac0d4e2a7.png)
+
+# Available Models
+
+- (0) Default
+- (1) GPT-3.5 Turbo
+- (2) GPT-4 (Attachments Available)
+- (3) GPT-4 Code Interpreter (Attachments Available)
+- (4) GPT-4 Plugins
+- (5) GPT-4 DALL-E
+
+If using a previously-initiated conversation, set model to 0
 
 # Methods
 There are 2 types of methods in this library:
