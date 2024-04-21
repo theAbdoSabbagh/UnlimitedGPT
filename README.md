@@ -57,4 +57,4 @@ This project is licensed under the GPLv3 License - see the [LICENSE](LICENSE) fi
 
 ## Star History
 
-[![Star History Chart](https://api.star-history.com/svg?repos=Sxvxgee/UnlimitedGPT&type=Date)](https://star-history.com/#Sxvxgee/UnlimitedGPT&Date)
+[![Star History Chart](https://api.star-history.com/svg?repos=theAbdoSabbagh/UnlimitedGPT&type=Date)](https://star-history.com/#Sxvxgee/UnlimitedGPT&Date)
