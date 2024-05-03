@@ -2,6 +2,7 @@ import datetime
 import re
 import pyperclip
 import platform
+import os
 from json import loads
 from logging import DEBUG, Formatter, StreamHandler, getLogger
 from os import environ
@@ -24,6 +25,7 @@ from selenium.webdriver.support.wait import WebDriverWait
 from undetected_chromedriver import ChromeOptions
 
 from UnlimitedGPT.internal.selectors import ChatGPTVariables as CGPTV
+from UnlimitedGPT.internal.selectors import ChatGPTModels as CGPTM
 from UnlimitedGPT.internal.driver import ChatGPTDriver
 from UnlimitedGPT.internal.exceptions import InvalidConversationID
 from UnlimitedGPT.internal.objects import ChatGPTResponse, Conversations, DefaultAccount, SessionData, SharedConversations, User
@@ -38,6 +40,8 @@ class ChatGPT:
         conversation_id (str, optional): The conversation ID. Defaults to ''.
         proxy (Optional[str], optional): The proxy server URL. Defaults to None.
         disable_moderation (bool, optional): Whether to disable moderation. Defaults to True.
+        clipboard_retrival (bool, optional): Whether to use the clipboard to retrieve the response (Faulty in WSL). Defaults to True.
+        model (int, optional): Model to use, check docs for more info. Defaults to 0. Use 0 for pre-existing conversations.
         verbose (bool, optional): Whether to enable verbose logging. Defaults to False.
         headless (bool, optional): Whether to run the browser in headless mode. Defaults to False.
         chrome_args (list): Additional arguments for the Chrome browser. Defaults to [].
@@ -55,6 +59,8 @@ class ChatGPT:
         conversation_id: str = "",
         proxy: Optional[str] = None,
         disable_moderation: bool = False,
+        clipboard_retrival: bool = True,
+        model: int = 0,
         verbose: bool = False,
         headless: bool = False,
         chrome_args: list = [],
@@ -63,6 +69,8 @@ class ChatGPT:
         self._conversation_id = conversation_id
         self._proxy = proxy
         self._disable_moderation = disable_moderation
+        self._clipboard_retrival = clipboard_retrival
+        self._model = model
         self._headless = headless
         self._chrome_args = chrome_args or []
         self._seen_onboarding = False
@@ -73,6 +81,12 @@ class ChatGPT:
             r"(https?|socks(4|5)?):\/\/.+:\d{1,5}", self._proxy  # type: ignore
         ):
             raise ValueError("Invalid proxy format")
+        
+        if self._model not in [0, 1, 2, 3, 4, 5]:
+            raise ValueError("Invalid model")
+        else:
+            if self._conversation_id != "" and self._model != 0:
+                raise ValueError("You can only set a model when creating a new conversation")
 
         self._init_browser()
         finalize(self, self.__del__)
@@ -188,7 +202,10 @@ class ChatGPT:
         self._ensure_cf()
 
         self.logger.debug("Opening chat page...")
-        self.driver.get(f"{CGPTV.chat_url}/{self._conversation_id}")
+
+        model_parameters = CGPTM[self._model]
+
+        self.driver.get(f"{CGPTV.chat_url}/{self._conversation_id}{model_parameters}")
         self._check_blocking_elements()
 
         self._is_active = True
@@ -359,13 +376,23 @@ class ChatGPT:
     def _get_new_response(self):
         body = self.driver.find_element(By.TAG_NAME, "body")
 
-        if platform.system() == "Darwin":  # macOS
-            key_command = Keys.COMMAND
-        else:
-            key_command = Keys.LEFT_CONTROL
+        if self._clipboard_retrival is True:
+            if platform.system() == "Darwin":  # macOS
+                key_command = Keys.COMMAND
+            else:
+                key_command = Keys.LEFT_CONTROL
 
-        body.send_keys(key_command, Keys.LEFT_SHIFT, "c")
-        return pyperclip.paste()
+            body.send_keys(key_command, Keys.LEFT_SHIFT, "c")
+            return pyperclip.paste()
+        else:
+            elements = self.driver.find_elements(By.CSS_SELECTOR, ".markdown")
+
+            # TODO: This will not work with codeblocks, fix later
+            # maybe itterate across all elements and join them all? idk
+
+            last_element_text = elements[-1].text
+
+            return last_element_text
 
     def get_user_data(self) -> Optional[DefaultAccount]:
         """
@@ -504,6 +531,7 @@ class ChatGPT:
     def send_message(
         self,
         message: str,
+        attachment: os.PathLike = None,
         timeout: int = 240,
         input_mode: Literal["INSTANT", "SLOW"] = "INSTANT",
         input_delay: float = 0.1,
@@ -536,6 +564,23 @@ class ChatGPT:
         textbox = WebDriverWait(self.driver, 60).until(
             EC.element_to_be_clickable(CGPTV.textbox)
         )
+
+        # Attachment
+        if attachment is not None:
+            assert self._model in [2, 3], "Only GPT-4 (2) and GPT-4 Code Interpreter (3) support attachments"
+            
+            wait = WebDriverWait(self.driver, 60)
+            wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, "div[type='button'] input[type='file']")))
+            
+            file_input = self.driver.find_element(By.CSS_SELECTOR, "div[type='button'] input[type='file']")
+            file_input.send_keys(attachment)
+
+            # Wait until it finishes uploading
+            # NOTE: This could also be used to send the message rather than pressing enter?
+            WebDriverWait(self.driver, 60).until(
+                EC.element_to_be_clickable(CGPTV.send_message_button)
+            )
+
         if input_mode == "INSTANT":
             self.driver.execute_script(
                 "arguments[0].value = arguments[1];", textbox, message

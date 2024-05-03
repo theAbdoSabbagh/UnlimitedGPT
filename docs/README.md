@@ -64,6 +64,8 @@ chatbot = ChatGPT(
         - Example: The conversation ID in the URL `https://chat.openai.com/c/aa4f2349-8090-42a8-b8dc-0d116ce6b712` is `aa4f2349-8090-42a8-b8dc-0d116ce6b712`.
 - `proxy (Optional[str])`: The proxy to use. Defaults to `None`.
 - `disable_moderation (bool)`: Whether to disable moderation or not. Defaults to `False`.
+- `model (int)`: Model to use, check the section "Available Models" for more information.
+- `clipboard_retrival (int)`: Wether to use the clipboard to retrieve the response (**Doesn't works in WSL**), or directly extract it from the HTML object. Defaults to `True` (Clipboard).
 - `verbose (bool)`: Whether to print debug messages or not. Defaults to `False`.
 - `headless (bool)`: Whether to run Chrome in headless mode or not. Defaults to `True`.
 - `chrome_args: (list)`: The Chrome arguments to use. Defaults to `[]`.
@@ -75,6 +77,17 @@ chatbot = ChatGPT(
 3. Copy the value in the `Cookie Value` field.
 
 ![image](https://user-images.githubusercontent.com/19218518/206170122-61fbe94f-4b0c-4782-a344-e26ac0d4e2a7.png)
+
+# Available Models
+
+- (0) Default
+- (1) GPT-3.5 Turbo
+- (2) GPT-4 (Attachments Available)
+- (3) GPT-4 Code Interpreter (Attachments Available)
+- (4) GPT-4 Plugins
+- (5) GPT-4 DALL-E
+
+If using a previously-initiated conversation, set model to 0
 
 # Methods
 There are 2 types of methods in this library:
@@ -96,6 +109,15 @@ message = api.send_message(
     input_delay=0.1, # Only used when input_mode is set to SLOW
 )
 print(message.response, message.conversation_id)
+```
+### Sending a message with an Image/File
+Note: Attachments **ONLY** work with GPT-4 `(2)` and GPT-4 Code Interpreter `(3)`
+```py
+message = api.send_message(
+    message="Describe this picture",
+    attachment="/home/user/image.jpg"
+)
+print(message.response)
 ```
 ### Regenrating a response
 ```py
@@ -192,14 +214,14 @@ for conversation in data.shared_conversations: # conversaion is of type Conversa
 - How do I report a bug?
     - You can report a bug by creating an issue [here](https://github.com/Sxvxgee/UnlimitedGPT/issues). Please make sure that you are using the latest version of the library before reporting a bug. Also, please make sure that the bug you are reporting has not been reported before.
 
-- Does this library support GPT-4?
-    - No, GPT-4 is a paid model, and I haven't subscribed to it. So, unless someone sponsors the project by giving me a GPT-4 subscription, I won't be able to add support for GPT-4.
-
-- When is interactive mode coming?
-    - Interactive mode is not on my priority list right now. I will add it when I have time.
-
 - Is this project affiliated with OpenAI?
     - No, this project is not affiliated with OpenAI in any way.
+
+- Why I can't send an attachment to GPT-3, GPT-4 Plugins, or GPT-4 DALL-E?
+    - None of these modalities support attachments, they are only available in GPT-4 and GPT-4 Code Interpreter.
+
+- I am getting "Unusual activity" when giving GPT-4 an image...
+    - Try setting `input_mode` to `SLOW`
 
 - Is this project safe to use?
     - Yes, this project is safe to use. However, if you are using this project to automate your conversations on https://chat.openai.com/chat, you might get banned. So, use this project at your own risk, as it is against the OpenAI's TOS.
