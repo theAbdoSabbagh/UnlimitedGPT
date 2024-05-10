@@ -67,6 +67,7 @@ chatbot = ChatGPT(
 - `verbose (bool)`: Whether to print debug messages or not. Defaults to `False`.
 - `headless (bool)`: Whether to run Chrome in headless mode or not. Defaults to `True`.
 - `chrome_args: (list)`: The Chrome arguments to use. Defaults to `[]`.
+- `browser_executable_path (str)`: The path to the browser. If nothing is specified, Chrome will be launched. Defaults to `''`.
 
 # Obtaining the session token
 
